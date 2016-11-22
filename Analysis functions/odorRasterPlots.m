@@ -27,6 +27,7 @@ annotColors = [0,0,0;0,0,0];
 h = figure(7);clf; hold on
 spDim1 = floor(sqrt(length(odors)));
 spDim2 = ceil(sqrt(length(odors)));
+spDim1=spDim2;
 
 % Separate spikes and plot rasters
 for iOdor = 1:numel(odors)
