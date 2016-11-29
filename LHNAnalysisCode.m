@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2016-Oct-01', 1);
+expData = loadExperiment('2016-Nov-27', 1);
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -34,7 +34,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [24];
+trialList = [13];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 
@@ -94,9 +94,6 @@ end
 % legend({'Baseline', 'First Ejection', 'Last Ejection'})
 end 
 
-%%
-bl.odors = strrep(bl.odors, 'ParaffinOil','Farnesol_e-2')
-
     %% Calculate seal resistance
     bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage)
     
@@ -134,8 +131,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = []; 
 f.figDims = [10 200 1000 600];
-f.timeWindow = [9 14];
-f.yLims = [-55 -30]; 
+f.timeWindow = [6 16]; 
+f.yLims = [-57 -54]; 
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -151,7 +148,7 @@ for iOdor = valveList;
     f.figLegend{iOdor} = strrep(odors{find(valveList == iOdor)},'_','\_');
 end
 f.figLegend = f.figLegend(~cellfun('isempty',f.figLegend));
-groupColors = [0 0 1; 0 .75 0; 1 0 0; 1 .5 0; 0 0 0]; %jet(nOdors);
+groupColors = [0 0 1; 0 .75 0; 1 0 0; 1 .5 0; .85 0 .85]; %jet(nOdors);
 [avgTraces, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);                                   
 ax = gca;
 ax.LineWidth = 3;
@@ -257,7 +254,7 @@ f = figInfo;
 f.timeWindow = [9 14];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*6;
+nBins = (diff(f.timeWindow)+1)*4;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -265,7 +262,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Oct_06_Baseline_1';
+filename = 'Nov_28_Voltage';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
