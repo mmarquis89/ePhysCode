@@ -1,10 +1,12 @@
 function [meanTrace, h] = avgTracePlot(bl, figInfo)
+%=====================================================================
 % PLOT AVERAGE TRACES
 % bl = trial block structure
 % figInfo = object with (optional) properties:
                 % timeWindow = [startTime, stopTime] in seconds 
                 % figDims [X Y width height]
                 % yLims [yMin, yMax]
+%======================================================================
 
 % Get correct trace data and y-axis labels
 if strcmp(bl.ampMode, 'Vclamp')
@@ -27,8 +29,8 @@ else
 end
 
 % Create annotation line info
-annotLines = [bl.pinchOpen, bl.stimOnTime, bl.stimOnTime + bl.stimLength];
-annotColors = [0,0,0;0,1,0;1,0,0];
+annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];
+annotColors = [0,0,0;0,0,0];
 
 % Plot figure
 h = figure(3); clf; hold on;

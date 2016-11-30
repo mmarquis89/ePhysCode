@@ -1,12 +1,11 @@
 
 expNum = 1; 
-trialDuration = [8 3 1 8];    % [pre-stim, pinch valve acclimation, clean valve open, post-stim]
+trialDuration = [11 1 8];    % [pre-stim, clean valve open, post-stim]
 Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
 odors = {'PentylAcetate_e-6', 'Farnesol_e-2', 'EthylAcetate_e-7', 'ParaffinOil'};
-%testing
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 

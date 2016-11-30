@@ -1,10 +1,12 @@
 function filtData = notchFilter(data, sampRate, freq, bWidth)
-
+% ==============================================================================================
 % Apply notch filter to data 
-% Input: time series data
-%        sampling rate
-%        notch frequency in Hz
-%        notch bandwidth in samples
+% Inputs:
+%        data: time series data
+%        sampRate: sampling rate
+%        freq: notch frequency in Hz
+%        bWidth: notch bandwidth in samples
+% ==============================================================================================
 
 wo = freq/(sampRate/2);                                             % Set target frequency
 bw = wo/bWidth;                                                     % Set band width

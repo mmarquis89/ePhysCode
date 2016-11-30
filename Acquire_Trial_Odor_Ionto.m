@@ -1,7 +1,7 @@
 function data = Acquire_Trial_Odor_Ionto(expNumber, trialDuration, iontoDuration, odor, valveID, Istep, Ihold)
 
 % expnumber = experiment (fly or cell) number
-% trialDuration = [pre-stim, pinch valve acclimation, clean valve open, post-stim] in seconds
+% trialDuration = [pre-stim, clean valve open, post-stim] in seconds
         % If trialDuration is a single integer, a trace of that duration will be acquired
 % iontoDuration = [pre-ionto, ionto on, post-ionto] in seconds. Use [] if not iontophoresing on this trial.
 % vHold = command voltage in mV (only used in I-clamp mode)
@@ -28,23 +28,19 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
     if stimOn        
         
         % Make pre- and post-stim output vectors
-        %preStimPinch = zeros(sampRate * trialDuration(1), 1);
-        preStimIso = zeros(sampRate * sum(trialDuration(1:2)), 1);
-        postStim = zeros(sampRate * (trialDuration(4)-1), 1);
-        postStimShuttle = zeros(sampRate * trialDuration(4), 1);
+        preStimIso = zeros(sampRate * trialDuration(1), 1);
+        postStim = zeros(sampRate * (trialDuration(3)-1), 1);
+        postStimShuttle = zeros(sampRate * trialDuration(3), 1);
         
-        % Make pinch and iso valve open vectors
-        %pinchValveOpen = ones(sampRate * (sum(trialDuration(2:3))+1), 1);
-        isoValveOpen = ones(sampRate * (trialDuration(3)+1), 1);     
-        shuttleValveOpen = ones(sampRate * trialDuration(3), 1);
+        % Make valve open vectors
+        isoValveOpen = ones(sampRate * (trialDuration(2)+1), 1);     
+        shuttleValveOpen = ones(sampRate * trialDuration(2), 1);
         
-        % Put together full output vectors
-        %pinchValveOut = [preStimPinch; pinchValveOpen; postStim];                                                    
+        % Put together full output vectors                                             
         isoValveOut = [preStimIso; isoValveOpen; postStim];        
         shuttleValveOut = [preStimIso; shuttleValveOpen; postStimShuttle];
         
         % Make sure valves are closed
-        %pinchValveOut(end) = 0;  
         isoValveOut(end) = 0;
         shuttleValveOut(end) = 0;
         
@@ -99,7 +95,6 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         % Setup output channels
         s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');       % Shuttle valve       
         s.addDigitalChannel('Dev2', 'port0/line8:11', 'OutputOnly');    % 2-way iso valves
-        %s.addDigitalChannel('Dev2', 'port0/line12:15', 'OutputOnly');   % Pinch valves
         s.addAnalogOutputChannel('Dev2', 0 , 'Voltage');                % Amplifier external command        
         s.addDigitalChannel('Dev2', 'port0/line1', 'OutputOnly');       % Ionto generator
         
@@ -107,7 +102,6 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         outputData = zeros(sum(trialDuration*sampRate), 7);
         outputData(:,1) = shuttleValveOut;
         outputData(:, valveID + 1) = isoValveOut;
-        %outputData(:, valveID + 5) = pinchValveOut;
         outputData(:,6) = Icommand;
         outputData(:,7) = iontoStimOut;
         s.queueOutputData(outputData); 
@@ -137,14 +131,13 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         ylabel('Im (pA)');
     end
     if stimOn
-        plot([(trialDuration(1)),(trialDuration(1))],ylim, 'Color', 'g')    % Pinch valve open
-        plot([(trialDuration(1)+trialDuration(2)),(trialDuration(1)+trialDuration(2))],ylim, 'Color', 'k') % Clean valve open
-        plot([sum(trialDuration(1:3)),sum(trialDuration(1:3))],ylim, 'Color', 'k')  % Shuttle valve closed
+        plot([trialDuration(1), trialDuration(1)],ylim, 'Color', 'k') % Odor stim onset
+        plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'k')  % Odor stim offset
         if ~isempty(iontoDuration)
             iontoStart = iontoDuration(1);
             iontoEnd = sum(iontoDuration(1:2));
-            plot([iontoStart, iontoStart], ylim, 'Color' , 'm')  % Iontophoresis start
-            plot([iontoEnd, iontoEnd], ylim, 'Color', 'm')  % Iontophoresis end
+            plot([iontoStart, iontoStart], ylim, 'Color' , 'r')  % Iontophoresis start
+            plot([iontoEnd, iontoEnd], ylim, 'Color', 'r')  % Iontophoresis end
         end
     end
     title(['Trial Number ' num2str(n) ]);
@@ -162,9 +155,8 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         ylabel('Vm (mV)');
     end
     if stimOn
-        plot([(trialDuration(1)),(trialDuration(1))],ylim, 'Color', 'g')  % Pinch valve open
-        plot([(trialDuration(1)+trialDuration(2)),(trialDuration(1)+trialDuration(2))],ylim, 'Color', 'k') % Clean valve open
-        plot([sum(trialDuration(1:3)),sum(trialDuration(1:3))],ylim, 'Color', 'k')  % Both valves closed
+        plot([trialDuration(1), trialDuration(1)],ylim, 'Color', 'k') % Odor stim onset
+        plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'k')  % Odor stim offset
         if ~isempty(iontoDuration)
             iontoStart = iontoDuration(1);
             iontoEnd = sum(iontoDuration(1:2));

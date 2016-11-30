@@ -1,4 +1,5 @@
 function [rInput] = calcRinput(data, sR, Istep, stepStart, stepLength, calcWin)
+% =========================================================================================================
 % Calculates input resistance in GOhm of a current clamp trial with a test step.
     % data = the vector of raw Vm data (in mV)
     % sR = the sampling rate of the trial
@@ -6,6 +7,7 @@ function [rInput] = calcRinput(data, sR, Istep, stepStart, stepLength, calcWin)
     % stepStart = current step start time in sec
     % stepLength = current step length in sec
     % calcWin = window size in seconds to average across before the beginning and end of the current step
+% =========================================================================================================
 
 stepEnd = stepStart + stepLength;
 

@@ -1,5 +1,5 @@
 function data = Acquire_PID_Trial(expNumber,trialDuration, valveID)
-
+% =============================================================================================================
 % expnumber = experiment (fly or cell) number
 % trialDuration = [pre-stim, pinch valve acclimation, clean valve open, post-stim] in seconds
         % If trialDuration is a single integer, a trace of that duration will be acquired
@@ -9,7 +9,7 @@ function data = Acquire_PID_Trial(expNumber,trialDuration, valveID)
 % Ihold = the holding current in pA to consistently inject into the cell
 
 % Raw data sampled at 20 kHz and saved as separate waveforms for each trial
-  
+% ==============================================================================================================  
 %% SETUP TRIAL PARAMETERS
 
     [data, n] = acquisitionSetup(expNumber,trialDuration, [], [], [], valveID, [], 0);

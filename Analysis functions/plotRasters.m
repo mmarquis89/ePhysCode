@@ -1,4 +1,5 @@
 function [h] = plotRasters(h, bl, figInfo, spikeTimes, annotLines, annotColors)
+% ==============================================================================================
 % PLOTS SPIKE RASTER USING DATA FROM bl.spikes
 % h = figure handle
 % bl = trial block structure
@@ -11,6 +12,7 @@ function [h] = plotRasters(h, bl, figInfo, spikeTimes, annotLines, annotColors)
 % spikeTimes: cell array containing spike times (in sec) for each trial
 % annotLines: vector of the xLocs for each vertical marker line
 % annotColors: the color for each annotation line
+% ==============================================================================================
 
 % Initial variable setup
 smpRt = bl.sampRate;    

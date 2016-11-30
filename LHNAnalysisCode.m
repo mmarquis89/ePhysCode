@@ -53,15 +53,18 @@ bl.odors = {block.trialInfo.odor};
 bl.Rpipette = pipetteResistanceCalc(expData.trialData(1).scaledOut);
 bl.trialDuration = block.trialInfo(1).trialduration;
 
+% Maintain backwards-compatibility with older experiments that contained pinch valve timing info
+if length(bl.trialDuration) == 4
+   bl.trialDuration = [sum(bl.trialDuration(1:2)), bl.trialDuration(3), bl.trialDuration(4)]; 
+end
+
 % This stuff only applies if an odor was presented
 if length(bl.trialDuration) > 1   
     % Save valve timing
-    bl.pinchOpen = block.trialInfo(1).trialduration(1);                                                % Pre-stim time (sec)
-    bl.stimOnTime = block.trialInfo(1).trialduration(1) + block.trialInfo(1).trialduration(2);
-    bl.stimLength = block.trialInfo(1).trialduration(3);                                               % Stim duration
+    bl.stimOnTime = block.trialInfo(1).trialduration(1) ;                                              % Pre-stim time (sec)
+    bl.stimLength = block.trialInfo(1).trialduration(2);                                               % Stim duration
 else
     bl.vHolds = [];
-    bl.pinchOpen = [];
     bl.stimOnTime = [];
     bl.stimLength = [];
 end
@@ -160,8 +163,8 @@ ax.FontSize = 16;
     sR = bl.sampRate;
     Istep = 1;
     calcWin = 0.2;
-    stepStart = 1;
-    stepLength = 1;
+    stepStart = 1; % Note hardcoded value
+    stepLength = 1; % Note hardcoded value
     
     inputResistances = [];
     inputResistances(1,1) = calcRinput(avgTraces(1,:), sR, Istep, stepStart, stepLength, calcWin);
@@ -292,7 +295,7 @@ print(j, ['C:\Users\Wilson Lab\Desktop\', filename], '-depsc')
 
 %% COMPARE TOTAL SPIKES ACROSS CONDITIONS
 
-timeWin = [sum(bl.trialDuration(1:2)), sum(bl.trialDuration(1:3))];
+timeWin = [bl.trialDuration(1), sum(bl.trialDuration(1:2))];
 
 % Convert spike locations to seconds and save in cell array
 spikeTimes = cell(bl.nTrials, 1);
