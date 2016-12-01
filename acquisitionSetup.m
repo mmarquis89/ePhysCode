@@ -24,7 +24,7 @@ function [data, n] = acquisitionSetup(expNumber,trialDuration, iontoDuration, ej
  
     data(n).odor = odor;
     sampRate = 20000;
-    data(n).trialduration = trialDuration;  % Trial duration (pre-stim, pinch open, 2-way open, post-stim)
+    data(n).trialduration = trialDuration;  % Trial duration (pre-stim, valves open, post-stim)
     data(n).ejectionDuration = ejectionDuration;
     data(n).iontoDuration = iontoDuration;
     data(n).valveID = valveID;
@@ -32,7 +32,7 @@ function [data, n] = acquisitionSetup(expNumber,trialDuration, iontoDuration, ej
     % current command parameters
     data(n).Istep = Istep;
     data(n).Ihold = Ihold;
-    data(n).stepStartTime = 1;
+    data(n).stepStartTime = 1; % Note hardcoded parameters here
     data(n).stepLength = 1;
     data(n).DAQOffset = 0.5;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
     

@@ -1,6 +1,9 @@
 function plotRins(data)
+% ==============================================================================================
 % Plots input resistances across an experiment
-    % data = a data structure with input resistance values in field Rin (NaN for skipped trials)
+%     data = a data structure with input resistance values in field Rin (NaN for skipped trials)
+% ==============================================================================================
+    
 set(gcf, 'Position', [1250 40 620 400], 'Color', [1 1 1]);
 set(gca, 'LooseInset', get(gca, 'TightInset'));
 Rins = [data.Rin];

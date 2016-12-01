@@ -1,11 +1,13 @@
 function [h] = odorRasterPlots(bl, figInfo, histOverlay, nBins)
+%================================================================================
 % PLOTS RASTERS FOR EJECTION AND CONTROL TRIALS
 % bl = trial block structure
 % figInfo = object with (optional) properties:
                 % timeWindow = [startTime, stopTime] in seconds
                 % figDims [X Y width height]
 % histOverlay = boolean specifying whether to overlay a PSTH with 1 second bins
-                
+%================================================================================
+
 % Convert spike locations to seconds and save in cell array
 spikeTimes = cell(bl.nTrials, 1);
 for iTrial = 1:bl.nTrials
@@ -27,7 +29,7 @@ annotColors = [0,0,0;0,0,0];
 h = figure(7);clf; hold on
 spDim1 = floor(sqrt(length(odors)));
 spDim2 = ceil(sqrt(length(odors)));
-spDim1=spDim2;
+spDim1=spDim2; % Temp fix for a sizing bug
 
 % Separate spikes and plot rasters
 for iOdor = 1:numel(odors)
@@ -47,8 +49,5 @@ for iOdor = 1:numel(odors)
         ax.YLim(2) = ax.YLim(2) * 4;
     end
 end
-
-
-
 
 end

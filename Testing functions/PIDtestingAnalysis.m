@@ -47,12 +47,10 @@ bl.trialDuration = block.trialInfo(1).trialduration;
 
 % This stuff only applies if an odor was presented
 if length(bl.trialDuration) > 1       
-    % Save valve timing
-    bl.pinchOpen = block.trialInfo(1).trialduration(1);                                                % Pre-stim time (sec)
-    bl.stimOnTime = block.trialInfo(1).trialduration(1) + block.trialInfo(1).trialduration(2);
-    bl.stimLength = block.trialInfo(1).trialduration(3);                                               % Stim duration
+    % Save valve timing                                            
+    bl.stimOnTime = block.trialInfo(1).trialduration(1);
+    bl.stimLength = block.trialInfo(1).trialduration(2);                                               % Stim duration
 else
-    bl.pinchOpen = [];
     bl.stimOnTime = [];
     bl.stimLength = [];
 end
@@ -60,7 +58,6 @@ end
 % Save recorded data
 bl.voltage = block.data;             % 2 - 10 Vm voltage traces
 end 
-
 
 % Average and smooth traces from each block
 meanV = [];
@@ -70,7 +67,7 @@ end
 
 % PLOT EACH TRIAL VOLTAGE AND CURRENT
 f = figInfo; 
-f.timeWindow = [sum(bl.trialDuration(1:2)), sum(bl.trialDuration(1:3))];
+f.timeWindow = [bl.trialDuration(1), sum(bl.trialDuration(1:2))];
 f.yLims = yL;
 f.lineWidth = 2;
            
@@ -86,7 +83,7 @@ end
 
 % Set shared parameters
 traceColors = cm;
-annotLines = [bl.pinchOpen, bl.stimOnTime, bl.stimOnTime + bl.stimLength];
+annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];
 annotColors = [0,0,0;0,1,0;1,0,0];
 f.xLabel = 'Time (sec)';
 

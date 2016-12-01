@@ -1,10 +1,11 @@
-function [output]  = shuffleTrials(odors, nReps)
-% Creates a list of odors in a pseudorandom order such that the same odor
-% will never be presented on two consecutive trials
+function [output] = shuffleTrials(odors, nReps)
+% ==============================================================================================
+% Creates a list of odors in a pseudorandom order such that the same odor will never be 
+% presented on two consecutive trials
 %
 % odors: a Nx1 cell array with the names of the odors you want to present
 % nReps: the number of times you want each odor to be listed in the output
-
+% ==============================================================================================
 
 % Repeat each odor the specified number of times and shuffle list
 odorList = repelem(odors, nReps);
@@ -18,10 +19,9 @@ while ~done
     if sum(csq) == 0
         done = 1;
     else
-        % Find the index of the first repeat, and look through the array
-        % for a location it could be swapped with that will eliminate the
-        % repeat at that location without creating a new one in the swapped
-        % element's location
+        % Find the index of the first repeat, and look through the array for a location it could 
+        % be swapped with that will eliminate the repeat at that location without creating a new
+        % one in the swapped element's location
         ind = find(csq, 1);
         for iTrial = 2:length(odorList)-1            
             if ~strcmp(odorList{ind}, odorList{iTrial-1}) && ~strcmp(odorList{ind}, odorList{iTrial+1}) ...

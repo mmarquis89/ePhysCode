@@ -1,4 +1,5 @@
  function [h, j] = traceOverlayPlot(bl, figInfo)
+ %==============================================================================================
 % PLOT EACH TRIAL VOLTAGE AND CURRENT
 % bl = trial block structure
 % figInfo = object with (optional) properties:
@@ -6,7 +7,8 @@
                 % yLims [yMin, yMax]
                 % cm = (optional) colormap for traces, each row is RGB for one trace. 
                 %       Default of empty array will color them chronologically using jet
-               
+%================================================================================================
+
 % Create colormap                
 tRange = [1:bl.nTrials];
 if isempty(figInfo.cm)

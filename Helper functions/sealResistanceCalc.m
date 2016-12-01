@@ -1,7 +1,8 @@
 function Rseal = sealResistanceCalc(current, voltage)
-
+% ==============================================================================================
 % Uses a current trace from a Vclamp seal test trial (after transients are cancelled) 
 % to calculate the approximate seal resistance (in GOhm)
+% ==============================================================================================
 
 dV = 5; % Voltage step in mV
 

@@ -3,7 +3,7 @@
 function data = denoising_Acquisition(expNumber,trialDuration)
 
 % expnumber = experiment (fly or cell) number
-% trialDuration = [pre-stim, pinch valve acclimation, clean valve open, post-stim] in seconds
+% trialDuration = [pre-stim, clean valve open, post-stim] in seconds
         % If trialDuration is a single integer, a trace of that duration will be acquired
 % odor = record of odor ID - Use 'EmptyVial', 'ParaffinOil', or the odor name, or '[]' if no stim is delivered
 % valveID = a number from 1-4 indicating which valve to use if a stimulus is delivered (use '[]' if no stim)

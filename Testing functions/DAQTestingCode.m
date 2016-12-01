@@ -1,7 +1,7 @@
 
 % Record trial parameters
     sampRate = 10000;
-    trialDuration = [2 2];                      % Trial duration (pre-stim, pinch valve, clean valve, post-stim)
+    trialDuration = [2 2];                      % Trial duration (pre-stim, clean valve, post-stim)
     stimVolts = 5;    
     
     valveStim = [ones(sampRate * trialDuration(1), 1)*stimVolts; zeros(sampRate * trialDuration(2), 1)];                                       % Make sure valves are closed

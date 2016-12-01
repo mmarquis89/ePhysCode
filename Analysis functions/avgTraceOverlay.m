@@ -1,4 +1,5 @@
 function [meanTraces, h] = avgTraceOverlay(bl, figInfo, traceGroups, groupColors, medfilt, offset)
+%=========================================================================================================
 % Plots an overlay of the average voltage traces from a block of mixed trial groups
 % bl = trial block structure
 % figInfo = object with (optional) properties:
@@ -8,7 +9,7 @@ function [meanTraces, h] = avgTraceOverlay(bl, figInfo, traceGroups, groupColors
 % traceGroups = a vector with the desired trace groups (e.g. [1 2 2 1 3])      
 % medfilt = 1 to remove spikes with a median filter before averaging, 0 to skip this step.
 % offset = 1 to add an offset to align all traces to the most hyperpolarized one, 0 to skip this step.
- 
+%========================================================================================================= 
 
 % Setup variables
 groupList = unique(traceGroups);

@@ -1,11 +1,11 @@
 
 expNum = 1; 
-trialDuration = [8 3 1 8];    % [pre-stim, pinch valve acclimation, clean valve open, post-stim]
+trialDuration = [11 1 8];    % [pre-stim, clean valve open, post-stim]
 Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'Farnesol_e-2', 'cVA_e-2', 'Farnesol_e-3', 'ParaffinOil'};
+odors = {'PentylAcetate_e-6', 'Farnesol_e-2', 'EthylAcetate_e-7', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -26,11 +26,11 @@ end
 %% RUN ODOR TRIAL(S)
 
 % Create shuffled trial order
-nReps = 10;
+nReps = 1;
 odorList = shuffleTrials(odors(1:4), nReps);
-% disp('Shuffle complete')
-% Setup odor and valve list manually
-% odorList = odors([4 4 4 4]);
+disp('Shuffle complete')
+%Setup odor and valve list manually
+% odorList = odors([2 3 2 3 2 3 2 3]);
 
 % Setup list of valves to use for each trial 
 nTrials = length(odorList);
@@ -48,13 +48,14 @@ disp('End of block');
 
 %% RUN IONTOPHORESIS TRIAL(S)
 
-iontoDuration = [7 6 7];
+iontoDuration = [8 5 7];
 
 % Setup trials of a single odor with alternating iontophoresis (ionto on first trial)
 valveNum = 1;
+nReps = 1;
 trialOdor = odors{valveNum};
-iontoDurationList = repmat({iontoDuration;[]}, nReps, 1);
-
+iontoDurationList = repmat({iontoDuration ;[]}, nReps, 1);
+ 
 % Make sure ionto and trial durations sum to the same number
 if sum(trialDuration) ~= sum(iontoDuration)
     disp('Duration mismatch!')

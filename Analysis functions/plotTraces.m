@@ -1,8 +1,9 @@
 function [h] = plotTraces(h, bl, figInfo, traceData, traceColors, annotLines, annotColors)
-% Creates a new figure, formats it using the figInfo object and block structure,
-% and plots one or more traces and/or vertical marker lines
-%  h = handle of the figure to plot in
-%  figInfo is an object with (optional) properties: 
+% ==============================================================================================
+% Creates a new figure, formats it using the figInfo object and block structure, and plots one 
+% or more traces and/or vertical marker lines
+% h = handle of the figure to plot in
+% figInfo is an object with (optional) properties: 
     % figDims: position and size of figure window: [X, Y, width, height]
     % xLabel:  text for x-axis label
     % yLabel:  text for y-axis label
@@ -15,6 +16,7 @@ function [h] = plotTraces(h, bl, figInfo, traceData, traceColors, annotLines, an
 % traceColors: nx3 array, each row is the color for one trace
 % annotLines: vector of the xLocs for each vertical marker line
 % annotColors: the color for each annotation line
+% ==============================================================================================
 
 % Initial variable setup
 smpRt = bl.sampRate;    

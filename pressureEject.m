@@ -9,14 +9,14 @@ function data = pressureEject(expNumber,trialDuration, ejectionDuration, Ihold)
 
 %% SETUP TRIAL PARAMETERS
 
-    [data, n] = acquisitionSetup(expNumber,trialDuration, [], ejectionDuration, [], [], [], Ihold);   
+    [data, n] = acquisitionSetup(expNumber, trialDuration, [], ejectionDuration, [], [], [], Ihold);   
     sampRate = data(n).sampratein;    
     data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data 
 
     % Set up stimulus data
     ejectStimOut = zeros(sampRate * sum(trialDuration),1);
     ejectStimOut(int32(sampRate*trialDuration(1)):int32(sampRate*(trialDuration(1)+(ejectionDuration./1000)))) = 1;
-    pumpCommand = [ejectStimOut];
+    pumpCommand = ejectStimOut;
     
     Icommand = ones(sampRate*sum(trialDuration),1) * Ihold/2;
     
