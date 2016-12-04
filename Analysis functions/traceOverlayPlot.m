@@ -23,8 +23,14 @@ end
 
 % Set shared parameters
 traceColors = cm;
-annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];
-annotColors = [0,0,0;0,0,0];
+if ~isempty(bl.iontoDuration)
+    annotLines = [bl.iontoStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.iontoStartTime + bl.iontoLength];    
+    annotColors = [1,0,1; 0,0,0; 0,0,0; 1,0,1];
+else
+    annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    
+    annotColors = [0,0,0; 0,0,0];
+end
+
 figInfo.xLabel = 'Time (sec)';
 
 % Set legend entries

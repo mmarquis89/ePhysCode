@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2016-Nov-27', 1);
+expData = loadExperiment('2016-Dec-02', 1);
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -34,10 +34,9 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [13];
+trialList = [100:119];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
-
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 for iFold = 1 % Just here so I can fold the code below
 
@@ -61,12 +60,30 @@ end
 % This stuff only applies if an odor was presented
 if length(bl.trialDuration) > 1   
     % Save valve timing
-    bl.stimOnTime = block.trialInfo(1).trialduration(1) ;                                              % Pre-stim time (sec)
+    bl.stimOnTime = block.trialInfo(1).trialduration(1);                                              % Pre-stim time (sec)
     bl.stimLength = block.trialInfo(1).trialduration(2);                                               % Stim duration
 else
     bl.vHolds = [];
     bl.stimOnTime = [];
     bl.stimLength = [];
+end
+
+% If iontophoresis was used, save the ionto timing info
+if ~isempty(block.trialInfo(1).iontoDuration)
+    bl.iontoDuration = block.trialInfo(1).iontoDuration;
+elseif ~isempty(block.trialInfo(2).iontoDuration)
+    bl.iontoDuration = block.trialInfo(2).iontoDuration;
+else
+    bl.iontoDuration = [];
+end
+
+% Save iontophoresis start and end times
+if ~isempty(bl.iontoDuration)
+    bl.iontoStartTime = bl.iontoDuration(1);
+    bl.iontoLength = bl.iontoDuration(2);
+else
+    bl.iontoStartTime = [];
+    bl.iontoLength = [];
 end
 
 % Save recorded data
@@ -96,7 +113,6 @@ if bl.nTrials == 1
 end
 % legend({'Baseline', 'First Ejection', 'Last Ejection'})
 end 
-
     %% Calculate seal resistance
     bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage)
     
@@ -106,18 +122,18 @@ end
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 200 1000 600];
-f.timeWindow = [10 14];
+f.timeWindow = [2 14];
 f.lineWidth = 1;
-f.yLims = [-45 -25]; 
+f.yLims = [-55 -30]; 
 
 medfilt = 1;
 offset = 0;
 
 % Specify trial groups
-traceGroups = [ones(numel(before), 1), 2*ones(numel(after), 1)]; %[1:numel(trialList)]; %
+traceGroups = repmat([1 2],1,10);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0];%jet(numel(trialList));
-f.figLegend = [{'Before', 'After'}, cell(1, length(unique(traceGroups)))];
+f.figLegend = [{'Ionto', 'Control'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 title([])
@@ -134,8 +150,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = []; 
 f.figDims = [10 200 1000 600];
-f.timeWindow = [6 16]; 
-f.yLims = [-57 -54]; 
+f.timeWindow = [2 15]; 
+f.yLims = [-55 -35]; 
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -265,7 +281,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Nov_28_Voltage';
+filename = 'Dec_02_Final_Acetoin_Block';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])

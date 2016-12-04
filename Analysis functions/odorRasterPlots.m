@@ -1,6 +1,6 @@
 function [h] = odorRasterPlots(bl, figInfo, histOverlay, nBins)
 %================================================================================
-% PLOTS RASTERS FOR EJECTION AND CONTROL TRIALS
+% PLOTS RASTERS 
 % bl = trial block structure
 % figInfo = object with (optional) properties:
                 % timeWindow = [startTime, stopTime] in seconds
@@ -22,8 +22,13 @@ odors = odors(valveList);
 % Set figInfo properties and annotation line info
 figInfo.yLabel = 'Trial Number';
 figInfo.xLabel = 'Time (sec)';
-annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];
-annotColors = [0,0,0;0,0,0];
+if ~isempty(bl.iontoDuration)
+    annotLines = [bl.iontoStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.iontoStartTime + bl.iontoLength];    
+    annotColors = [1,0,1; 0,0,0; 0,0,0; 1,0,1];
+else
+    annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    
+    annotColors = [0,0,0; 0,0,0];
+end
 
 % Set up figure
 h = figure(7);clf; hold on

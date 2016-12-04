@@ -47,8 +47,13 @@ else
 end
 
 % Create annotation line info
-annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    
-annotColors = [0,0,0; 0,0,0];
+if ~isempty(bl.iontoDuration)
+    annotLines = [bl.iontoStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.iontoStartTime + bl.iontoLength];    
+    annotColors = [1,0,1; 0,0,0; 0,0,0; 1,0,1];
+else
+    annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    
+    annotColors = [0,0,0; 0,0,0];
+end
 
 % Plot mean traces
 h = figure(3); clf; hold on;
