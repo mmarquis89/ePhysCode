@@ -20,7 +20,11 @@ function [data, n] = acquisitionSetup(expNumber,trialDuration, iontoDuration, ej
         n = length(data)+1;
     end
 
- %% Record trial parameters
+%% SAVE CURRENT GIT HASH
+
+data(n).gitHash = getCodeStamp(mfilename('fullpath'));
+
+ %% RECORD TRIAL PARAMETERS
  
     data(n).odor = odor;
     sampRate = 20000;
