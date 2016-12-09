@@ -41,7 +41,7 @@ figInfo.xLabel = 'Time (sec)';
 figInfo.yLabel = 'Average Vm (mV)';
 if length(unique({bl.trialInfo.odor})) > 1
     % Omit odor name from title if there are multiple odors in the block
-    figInfo.title = {[bl.date], ['Average traces for trials: ' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end))]};
+    figInfo.title = {['Average traces for trials: ' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end))]};
 else
     figInfo.title = {[bl.date ' - ' bl.trialInfo(1).odor], ['Average traces for trials: ' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end))]};
 end

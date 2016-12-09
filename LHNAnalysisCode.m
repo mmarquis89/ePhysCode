@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2016-Dec-02', 1);
+expData = loadExperiment('2016-Dec-08', 1);
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -34,7 +34,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [100:119];
+trialList = [47:50];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -49,7 +49,7 @@ bl.sampRate = block.trialInfo(1).sampratein;                                    
 bl.sampleLength = 1/bl.sampRate;                                                                  % Sample duration
 bl.time = bl.sampleLength:bl.sampleLength:bl.sampleLength*length(block.data.scaledOut);           % Time in seconds of each sample
 bl.odors = {block.trialInfo.odor};
-bl.Rpipette = pipetteResistanceCalc(expData.trialData(1).scaledOut);
+bl.Rpipette = pipetteResistanceCalc(expData.trialData(1).scaledOut)
 bl.trialDuration = block.trialInfo(1).trialduration;
 
 % Maintain backwards-compatibility with older experiments that contained pinch valve timing info
@@ -69,10 +69,10 @@ else
 end
 
 % If iontophoresis was used, save the ionto timing info
-if ~isempty(block.trialInfo(1).iontoDuration)
-    bl.iontoDuration = block.trialInfo(1).iontoDuration;
-elseif ~isempty(block.trialInfo(2).iontoDuration)
-    bl.iontoDuration = block.trialInfo(2).iontoDuration;
+iontoCell = {block.trialInfo.iontoDuration};
+iontoCell = iontoCell(~cellfun(@isempty, iontoCell));
+if ~isempty(iontoCell)
+    bl.iontoDuration = iontoCell{1};
 else
     bl.iontoDuration = [];
 end
@@ -95,7 +95,7 @@ bl.scaledOut = block.data.scaledOut;           % 3 - Scaled Output
 f = figInfo; 
 f.timeWindow = [];
 f.yLims = [];
-f.lineWidth = [];
+f.lineWidth = [1];
 f.cm = winter(bl.nTrials);
 [h,j] = traceOverlayPlot(bl, f);
 legend off
@@ -119,28 +119,63 @@ end
     %% Calculate access resistance
     bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate)
 
+%% BASIC TRACE PLOTTING
+
+% Set parameters
+f = figInfo;
+f.figDims = [10 300 1900 500];
+
+f.timeWindow = [.01 20];
+f.yLims = [-55 -40];
+f.lineWidth = [1];
+
+f.xLabel = ['Time (s)'];
+f.yLabel = ['Voltage (mV)'];
+f.title = ['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ... 
+    regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_5nA+TTX'];
+f.figLegend = {'Control', 'Ionto'};
+
+traceData = [bl.scaledOut']; % rows are traces
+traceColors = [0,0,1;1,0,0]; % n x 3 RGB array
+
+annotLines = [bl.iontoStartTime, bl.iontoStartTime+bl.iontoLength, ... 
+    bl.stimOnTime, bl.stimOnTime+bl.stimLength]; % vector of xLocs for annotation lines
+annotColors = [1,0,1;1,0,1;0,0,0;0,0,0]; % m x 3 RGB array for each annotation line
+
+% Plot traces
+h = figure(1); clf; hold on;
+h = plotTraces(h, bl, f, traceData, traceColors, annotLines, annotColors);
+set(gca,'LooseInset',get(gca,'TightInset'))
+
+% Format figure
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 16;
+
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
-f.figDims = [10 200 1000 600];
-f.timeWindow = [2 14];
+f.figDims = [10 300 1900 500];
+f.timeWindow = [.01 20];
 f.lineWidth = 1;
-f.yLims = [-55 -30]; 
+f.yLims = [-50 -40]; 
 
-medfilt = 1;
+medfilt = 0;
 offset = 0;
 
 % Specify trial groups
-traceGroups = repmat([1 2],1,10);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = repmat([1 2],1,2) ;%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0];%jet(numel(trialList));
-f.figLegend = [{'Ionto', 'Control'}, cell(1, length(unique(traceGroups)))];
+f.figLegend = [{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 title([])
 % legend('off')
 % legend({''; ''}, 'FontSize', 16, 'Location', 'northwest')
 ax = gca;
-ax.LineWidth = 3;
+ax.LineWidth = 2;
 ax.XColor = 'k';
 ax.YColor = 'k';
 ax.FontSize = 18;
@@ -150,8 +185,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = []; 
 f.figDims = [10 200 1000 600];
-f.timeWindow = [2 15]; 
-f.yLims = [-55 -35]; 
+f.timeWindow = [9 12.5]; 
+f.yLims = [-50 -15]; 
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -281,12 +316,11 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Dec_02_Final_Acetoin_Block';
+filename = 'Dec_08_Ionto_5nA+TTX';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
 t(2) = toc; tL{2} = 'Server save';
-f.figDims = [10 550 1650 400];
 set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
 export_fig(['C:\Users\Wilson Lab\Documents\MATLAB\Figs\PNG files\', filename], '-png')
 t(3) = toc; tL{3} = 'Local PNG save';
