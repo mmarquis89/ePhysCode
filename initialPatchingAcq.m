@@ -1,16 +1,28 @@
-function data = initialPatchingAcq(expNumber,trialDuration)
-
+function data = initialPatchingAcq(expNumber)
 % ===============================================================================================================
 % expnumber = experiment (fly or cell) number
-% trialDuration = trial length in seconds
-% Raw data sampled at 100 kHz and saved as separate waveforms for each trial
+% Raw data sampled at 100 kHz and saved in a single file.
 % ===============================================================================================================
-%% SETUP TRIAL PARAMETERS
+
+% SETUP TRIAL PARAMETERS
     
     % Run initial setup function
-    [data, n] = acquisitionSetup(expNumber,trialDuration, [], [], [], [], [], []);
-    data(n).sampratein = 100000;
-    data(n).samprateout = 100000;
+    [data, n] = acquisitionSetup(expNumber,[], [], [], [], [], [], []);
+    
+    % Make sure this is the first trial of the experiment, but give user an out for flexibility
+    inputStr = 'initStr';
+    if n>1
+       while ~strcmp(inputStr, 'y') && ~strcmp(inputStr, 'n')
+        inputStr = input([char(10), 'This will not be the first trial of this experiment. Are you sure you want to continue? y/n: '], 's'); 
+       end
+       if strcmp(inputStr, 'n')
+           disp([char(10), 'Initial acquisition abandoned']);
+           return
+       end
+    end
+    
+    data(n).sampratein = 80000;
+    data(n).samprateout = 80000;
     sampRate = data(n).sampratein;
     data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
     
@@ -26,20 +38,45 @@ function data = initialPatchingAcq(expNumber,trialDuration)
     
     % Setup session and input channels
     s = daq.createSession('ni');
-    s.DurationInSeconds = sum(data(n).trialduration);
     s.Rate = data(n).sampratein;
     s.addAnalogInputChannel('Dev2', 0:5,'Voltage');
     for iChan=1:6
         s.Channels(1,iChan).InputType = 'SingleEnded';
     end
-    x = s.startForeground();
-
-%% RUN POST-PROCESSING AND SAVE DATA
-    [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, x, n);
- 
-%% PLOT FIGURES
+    s.IsContinuous = true;
+    lh = addlistener(s,'DataAvailable', @contAcqSave);
+    assignin('base', 'x', []);
+    startBackground(s);
     
-    time = 1/data(n).sampratein:1/data(n).sampratein:sum(data(n).trialduration);
+    % Wait for user to end acquisition and ask whether to save or delete the data
+    disp([char(10), 'Acquiring...', char(10), 'Press any key to end initial acquisition', char(10)])
+    pause; 
+    while ~strcmp(inputStr, '') && ~strcmp(inputStr,'d')
+    inputStr = input('Press [Enter] to accept initial acquisition data, or enter "d" to delete it: ', 's');
+    end
+    
+    % End acquisition and trim to nearest second
+    s.stop();
+    x = evalin('base', 'x');
+    data(n).trialduration = floor(size(x, 1) / sampRate); % Round duration down to nearest second
+    x = x(1:data(n).trialduration*sampRate,:); % trim to the nearest second
+%     x = [x(:,1),zeros(size(x,1),2),x(:,2:4)]; % Pad with empty vectors for I and 10Vm
+    s.IsContinuous = false;
+    delete(lh)
+    
+%% RUN POST-PROCESSING AND SAVE DATA
+if strcmp(inputStr, 'd')
+    disp([char(10), 'Initial acquisition data discarded']);
+else
+    disp([char(10), 'Saving initial acquisition data...']);
+    [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, x, n);
+    disp('Initial acquisition data saved');
+% PLOT FIGURES
+    
+    time = 1/data(n).sampratein:1/data(n).sampratein:data(n).trialduration;
+    
+    peaks = findpeaks(scaledOut, 'MinPeakHeight', 200);
+    assignin('base', 'peaks', peaks)
     
     figure (1);clf; hold on
     set(gcf,'Position',[10 550 1850 400],'Color',[1 1 1]);
@@ -50,30 +87,8 @@ function data = initialPatchingAcq(expNumber,trialDuration)
     elseif strcmp(data(n).scaledOutMode, 'I')
         ylabel('Im (pA)');
     end
-    % Plot annotation lines if stimulus was presented
-    if stimOn
-        plot([(trialDuration(1)),(trialDuration(1))],ylim, 'Color', 'k')    % Odor valve onset
-        plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'r')  % Odor valve offset
-    end
     title(['Trial Number ' num2str(n) ]);
     set(gca,'LooseInset',get(gca,'TightInset'))
     box off
-        
-    figure (2); clf; hold on
-    set(gcf,'Position',[10 50 1850 400],'Color',[1 1 1]);
-    set(gca,'LooseInset',get(gca,'TightInset'))
-    if strcmp(data(n).scaledOutMode, 'V')
-        plot(time(.05*sampRate:end), current(.05*sampRate:end)); 
-        ylabel('Im (pA)');
-    elseif strcmp(data(n).scaledOutMode, 'I')
-        plot(time(.05*sampRate:end), tenVm(.05*sampRate:end));
-        ylabel('Vm (mV)');
-    end
-    % Plot annotation lines if stimulus was presented
-    if stimOn
-        plot([(trialDuration(1)),(trialDuration(1))],ylim, 'Color', 'g')  % Odor valve onset
-        plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'r')  % Odor valve offset
-    end
-    title(['Trial Number ' num2str(n) ]);
-    box off;
     
+end

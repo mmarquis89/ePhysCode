@@ -66,11 +66,11 @@ expNumber = data(n).expnumber;
     end
     
     % Calculate and record pipette resistance
-    if n == 1
-       data(n).Rpipette = pipetteResistanceCalc(current);
-    else
+%     if n == 1
+%        data(n).Rpipette = pipetteResistanceCalc(current);
+%     else
         data(n).Rpipette = [];
-    end
+%     end
     
     %% save data(n)
     save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/WCwaveform_' data(n).date,'_E',num2str(expNumber)],'data');

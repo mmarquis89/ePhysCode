@@ -1,11 +1,11 @@
 
 expNum = 1; 
-trialDuration = [6 1 13];    % [pre-stim, clean valve open, post-stim]
-Istep = [-2];
-Ihold = 0;
+trialDuration = [10 1 19];    % [pre-stim, clean valve open, post-stim]
+Istep = [];
+Ihold = -0.5;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'PentylAcetate_e-6', 'Farnesol_e-2', 'EthylAcetate_e-7', 'Acetoin_e-2'};
+odors = {'PentylAcetate_e-6', 'Farnesol_e-2', 'EthylAcetate_e-7', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -17,20 +17,24 @@ else
     disp('Too many trials for automatic deletion');
 end
 
+%% ACQUIRE INITIAL PATCHING DATA
+
+initialPatchingAcq(expNum);
+
 %% ACQUIRE TRACE
 traceDuration = 10; % Time to acquire in seconds
 for iTrial = 1
 Acquire_Trial_Odor(expNum, traceDuration, [], [], Istep, Ihold); 
 end
-        
+
 %% RUN ODOR TRIAL(S)
 
 % Create shuffled trial order
-% nReps = 2;
-% odorList = shuffleTrials(odors(1:4), nReps);
-% disp('Shuffle complete')
+nReps = 2;
+odorList = shuffleTrials(odors(1:4), nReps);
+disp('Shuffle complete')
 %Setup odor and valve list manually
-odorList = odors([2 2]);
+% odorList = odors([2 2]);
 
 % Setup list of valves to use for each trial 
 nTrials = length(odorList);
@@ -46,15 +50,16 @@ for iTrial = 1:nTrials
 end 
 disp('End of block');
 
+
 %% RUN IONTOPHORESIS TRIAL(S)
 
-iontoDuration = [3 8 39];
+iontoDuration = [5 7 18];
 
 % Setup trials of a single odor with alternating iontophoresis (ionto on first trial)
-valveNum = 4;
-nReps = 20;
+valveNum = 2;
+nReps = 1;
 trialOdor = odors{valveNum};
-iontoDurationList = repmat({iontoDuration ;[]}, nReps, 1);
+iontoDurationList = repmat({[] ; iontoDuration}, nReps, 1);
  
 % Make sure ionto and trial durations sum to the same number
 if sum(trialDuration) ~= sum(iontoDuration)
@@ -69,6 +74,7 @@ for iTrial = 1:nTrials
     Acquire_Trial_Odor_Ionto(expNum, trialDuration, iontoDurationList{iTrial}, trialOdor, valveNum, Istep, Ihold);
 end 
 disp('End of block');
+
 
 %% RUN EJECTION TRIALS
  
