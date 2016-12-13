@@ -49,17 +49,16 @@ function data = initialPatchingAcq(expNumber)
     startBackground(s);
     
     % Wait for user to end acquisition and ask whether to save or delete the data
-    disp([char(10), 'Acquiring...', char(10), 'Press any key to end initial acquisition', char(10)])
-    pause; 
+
     while ~strcmp(inputStr, '') && ~strcmp(inputStr,'d')
     inputStr = input('Press [Enter] to accept initial acquisition data, or enter "d" to delete it: ', 's');
     end
     
     % End acquisition and trim to nearest second
     s.stop();
-    x = evalin('base', 'x');
+    x = evalin('base', 'x'); % Pull data in from base workspace
     data(n).trialduration = floor(size(x, 1) / sampRate); % Round duration down to nearest second
-    x = x(1:data(n).trialduration*sampRate,:); % trim to the nearest second
+    x = x(1:data(n).trialduration*sampRate,:); % Trim to the nearest second
 %     x = [x(:,1),zeros(size(x,1),2),x(:,2:4)]; % Pad with empty vectors for I and 10Vm
     s.IsContinuous = false;
     delete(lh)
