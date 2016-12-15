@@ -1,8 +1,10 @@
 function data = initialPatchingAcq(expNumber)
-% ===============================================================================================================
-% expnumber = experiment (fly or cell) number
-% Raw data sampled at 80 kHz and saved in a single file.
-% ===============================================================================================================
+% ====================================================================================================
+% Starts continuously acquiring data at 80000 samples/sec until user clicks a button on a simple GUI
+% instructing the function to either discard the acquired data or save it in a single file.
+%   expNumber = experiment (fly or cell) number
+%   Raw data sampled at 80 kHz and saved in a single file.
+% ====================================================================================================
 
 % SETUP TRIAL PARAMETERS
     
@@ -47,7 +49,7 @@ function data = initialPatchingAcq(expNumber)
     lh = addlistener(s, 'DataAvailable', @contAcqSave);
     startBackground(s);
     
-    %% Create GUI to wait for user to end acquisition
+    % Create GUI to wait for user to end acquisition
     DlgH = figure;
     H = uicontrol('Style', 'PushButton', 'String', 'Save acquired data', 'Position', [10 220 545 150], 'FontSize', 25, 'Callback', @saveData);
     uicontrol('Style', 'PushButton', 'String', 'Delete acquired data', 'Position', [10 50 545 150], 'FontSize', 25, 'Callback', @delData);
@@ -57,37 +59,40 @@ function data = initialPatchingAcq(expNumber)
     
     % End acquisition and trim to nearest second
     s.stop();
-    data(n).trialduration = floor(size(contAcqData, 1) / sampRate); % Round duration down to nearest second
-    contAcqData = contAcqData(1:data(n).trialduration*sampRate,:); % Trim acquired data to the nearest second
+    data(n).trialduration = floor(size(contAcqData, 1) / sampRate);  % Round duration down to nearest second
+    contAcqData = contAcqData(1:data(n).trialduration*sampRate,:);   % Trim acquired data to the nearest second
     s.IsContinuous = false;
     delete(lh)
     delete(DlgH)
     
 %% RUN POST-PROCESSING AND SAVE DATA
-if ~saveToggle
-    disp([char(10), 'Initial acquisition data discarded']);
-    clear contAcqData;
-else
-    disp([char(10), 'Saving initial acquisition data...']);
-    [data, ~, scaledOut, ~] = acquisitionPostProcessing(data, contAcqData, n);
-    disp('Initial acquisition data saved');
-    
-    % PLOT FIGURES
-    time = 1/data(n).sampratein:1/data(n).sampratein:data(n).trialduration;
-    
-    figure (1);clf; hold on
-    set(gcf,'Position',[10 550 1850 400],'Color',[1 1 1]);
-    set(gca,'LooseInset',get(gca,'TightInset'))
-    plot(time(.05*sampRate:end), scaledOut(.05*sampRate:end));
-    if strcmp(data(n).scaledOutMode, 'V')
-        ylabel('Vm (mV)');
-    elseif strcmp(data(n).scaledOutMode, 'I')
-        ylabel('Im (pA)');
-    end
-    title(['Trial Number ' num2str(n) ]);
-    set(gca,'LooseInset',get(gca,'TightInset'))
-    box off
-end   
+    if ~saveToggle
+        % Delete acquired data
+        disp([char(10), 'Initial acquisition data discarded']);
+        clear contAcqData;
+    else
+        % Process and save acquired data
+        disp([char(10), 'Saving initial acquisition data...']);
+        [data, ~, scaledOut, ~] = acquisitionPostProcessing(data, contAcqData, n);
+        disp('Initial acquisition data saved');
+
+        % Plot figures
+        time = 1/data(n).sampratein:1/data(n).sampratein:data(n).trialduration;
+
+        figure (1);clf; hold on
+        set(gcf,'Position',[10 550 1850 400],'Color',[1 1 1]);
+        set(gca,'LooseInset',get(gca,'TightInset'))
+        plot(time(.05*sampRate:end), scaledOut(.05*sampRate:end));
+        if strcmp(data(n).scaledOutMode, 'V')
+            ylabel('Vm (mV)');
+        elseif strcmp(data(n).scaledOutMode, 'I')
+            ylabel('Im (pA)');
+        end
+        title(['Trial Number ' num2str(n) ]);
+        set(gca,'LooseInset',get(gca,'TightInset'))
+        box off
+    end   
+
 %% CALLBACK FUNCTIONS
     function saveData(src, event)
         saveToggle = true;
