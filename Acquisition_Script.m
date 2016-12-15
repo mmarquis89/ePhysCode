@@ -2,10 +2,10 @@
 expNum = 1; 
 trialDuration = [10 1 19];    % [pre-stim, clean valve open, post-stim]
 Istep = [];
-Ihold = -0.5;
+Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'PentylAcetate_e-6', 'Farnesol_e-2', 'EthylAcetate_e-7', 'ParaffinOil'};
+odors = {'Acetoin_e-2', '2-Butanone_e-2', 'Farnesol_e-2', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -22,7 +22,7 @@ end
 initialPatchingAcq(expNum);
 
 %% ACQUIRE TRACE
-traceDuration = 10; % Time to acquire in seconds
+traceDuration = 60; % Time to acquire in seconds
 for iTrial = 1
 Acquire_Trial_Odor(expNum, traceDuration, [], [], Istep, Ihold); 
 end

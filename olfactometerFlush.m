@@ -9,7 +9,7 @@ function olfactometerFlush()
 
     %% GUI to break looping
     DlgH = figure;
-    H = uicontrol('Style', 'PushButton', 'String', 'Break', 'Callback', 'delete(gcbf)');
+    H = uicontrol('Style', 'PushButton', 'String', 'Break', 'Position', [10 320 545 150], 'FontSize', 25, 'Callback', 'delete(gcbf)');
     
    
 %% SESSION-BASED ACQUISITION CODE 
@@ -34,13 +34,14 @@ tic
         % Load output data and start trial
         startBackground(s);
 
-    end 
+ end 
     
     % One last operation to close valves
     s.stop()
     s.queueOutputData(zeros(sampRate, 5));
     startBackground(s);
     delete(lh);
+    delete(DlgH);
 end
     
     
