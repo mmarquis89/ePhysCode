@@ -1,21 +1,21 @@
-function data = Acquire_Trial_Odor_Ionto(expNumber, trialDuration, iontoDuration, odor, valveID, Istep, Ihold)
+function data = Acquire_Trial_Odor_Opto(expNumber,trialDuration, optoDuration, odor, valveID, Istep, Ihold)
 
-% ===============================================================================================================
+% ===================================================================================================================
 % expnumber = experiment (fly or cell) number
 % trialDuration = [pre-stim, clean valve open, post-stim] in seconds
-        % If trialDuration is a single integer, a trace of that duration will be acquired
-% iontoDuration = [pre-ionto, ionto on, post-ionto] in seconds. Use [] if not iontophoresing on this trial.
-% vHold = command voltage in mV (only used in I-clamp mode)
+        % If trialDuration is a single integer, no odor will be presented (but shutter can still operate)
+% optoDuration = [pre-stim, shutter open, post-stim] in seconds (sum must match trialDuration)
+        % Use [] if not using light stim on this trial.    
 % odor = record of odor ID - Use 'EmptyVial', 'ParaffinOil', or the odor name, or '[]' if no stim is delivered
 % valveID = a number from 1-4 indicating which valve to use if a stimulus is delivered (use '[]' if no stim)
 % Istep = the size of the current step to use at the beginning of the trial in pA. [] will skip the step.
+% Ihold = the holding current in pA to consistently inject into the cell
 
 % Raw data sampled at 20 kHz and saved as separate waveforms for each trial
-
-% ================================================================================================================
+% ====================================================================================================================
 %% SETUP TRIAL PARAMETERS
 
-[data,n] = acquisitionSetup(expNumber, trialDuration, iontoDuration, [], odor, valveID, Istep, Ihold);
+[data,n] = acquisitionSetup(expNumber, trialDuration, optoDuration, [], odor, valveID, Istep, Ihold);
 sampRate = data(n).sampratein;
 data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
 
@@ -44,21 +44,23 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         
         % Make sure valves are closed
         isoValveOut(end) = 0;
-        shuttleValveOut(end) = 0;
-        
-        % Iontophoresis stim setup
-        if ~isempty(iontoDuration)
-            preIonto = zeros(sampRate * iontoDuration(1), 1);
-            iontoStim = ones(sampRate * iontoDuration(2), 1);
-            postIonto = zeros(sampRate * iontoDuration(3), 1);
-            iontoStimOut = [preIonto; iontoStim; postIonto];
-            iontoStimOut(end) = 0;
-        else
-            iontoStimOut = zeros(sampRate * sum(trialDuration),1);
-        end
-        
+        shuttleValveOut(end) = 0;        
     end
     
+    % Opto stim setup
+    if ~isempty(optoDuration)
+        minPulseLen = ceil(.0002 / (1/sampRate));  % TTL pulse must be at least 100 uSec to trigger shutter, use 200 to be safe
+        preOpto = zeros(sampRate * optoDuration(1), 1);
+        optoStim = zeros(sampRate * optoDuration(2), 1);            
+            optoStim(1:minPulseLen) = 1; % Set trigger pulse at beginning of light stimulus
+        postOpto = zeros(sampRate * optoDuration(3), 1);
+            postOpto(1:minPulseLen) = 1; % Set offset trigger pulse after stimulus period
+        optoStimOut = [preOpto; optoStim; postOpto];
+        optoStimOut(end) = 0;
+    else
+        optoStimOut = zeros(sampRate * sum(trialDuration),1);
+    end
+        
     % Set up amplifier external command
     if ~isempty(Istep)
         preStepOut = ones(sampRate * data(n).stepStartTime, 1) * Ihold/2;
@@ -88,8 +90,8 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
     s = daq.createSession('ni');
     s.DurationInSeconds = sum(data(n).trialduration);
     s.Rate = data(n).sampratein;
-    s.addAnalogInputChannel('Dev2',0:5,'Voltage');
-    for i=1:6
+    s.addAnalogInputChannel('Dev2',0:6,'Voltage');
+    for i=1:7
         s.Channels(1,i).InputType = 'SingleEnded';
     end
     
@@ -98,30 +100,33 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');       % Shuttle valve       
         s.addDigitalChannel('Dev2', 'port0/line8:11', 'OutputOnly');    % 2-way iso valves
         s.addAnalogOutputChannel('Dev2', 0 , 'Voltage');                % Amplifier external command        
-        s.addDigitalChannel('Dev2', 'port0/line1', 'OutputOnly');       % Ionto generator
+        s.addDigitalChannel('Dev2', 'port0/line12', 'OutputOnly');       % Shutter driver command
         
         % Load output data for each channel
         outputData = zeros(sum(trialDuration*sampRate), 7);
         outputData(:,1) = shuttleValveOut;
         outputData(:, valveID + 1) = isoValveOut;
         outputData(:,6) = Icommand;
-        outputData(:,7) = iontoStimOut;
+        outputData(:,7) = optoStimOut;
     else
         % Load output data for current step
         s.addAnalogOutputChannel('Dev2', 0, 'Voltage');
-        outputData = Icommand;
+        outputData(:,1) = Icommand;
+        % Queue shutter driver command
+        s.addDigitalChannel('Dev2', 'port0/line12', 'OutputOnly');  
+        outputData(:,2) = optoStimOut;
     end
     s.queueOutputData(outputData);
     
-    % Save all command data
+     % Save all command data
     data(n).outputData = outputData;
     
     s.Rate = data(n).samprateout;
     x = s.startForeground();
     
 %% RUN POST-PROCESSING AND SAVE DATA 
+    data(n).shutterTelegraph = x(:,7);
     [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, x, n);
-
 %% PLOTS
     
     time = 1/data(n).sampratein:1/data(n).sampratein:sum(data(n).trialduration);

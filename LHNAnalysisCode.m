@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2016-Nov-27', 1);
+expData = loadExperiment('2017-Jan-04', 1);
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -34,7 +34,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [20];
+trialList = [6:13];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -126,13 +126,13 @@ f = figInfo;
 f.figDims = [10 300 1900 500];
 
 f.timeWindow = [.01 20];
-f.yLims = [-55 -40];
+f.yLims = [-60 -40];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
 f.title = ['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ... 
-    regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_5nA+TTX'];
+    regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_BackingOff\_30nA+TTX+dTC'];
 f.figLegend = {'Control', 'Ionto'};
 
 traceData = [bl.scaledOut']; % rows are traces
@@ -185,8 +185,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = []; 
 f.figDims = [10 200 1000 600];
-f.timeWindow = [9 12.5]; 
-f.yLims = [-50 -15]; 
+f.timeWindow = [8 14]; 
+f.yLims = [-55 -45]; 
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -316,7 +316,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Dec_08_Ionto_5nA+TTX';
+filename = 'Dec_14_2-butanone_BackingOff_30nA+TTX+dTC';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])

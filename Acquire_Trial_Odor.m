@@ -56,7 +56,7 @@ function data = Acquire_Trial_Odor(expNumber,trialDuration, odor, valveID, Istep
     else
         Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/2) - data(n).DAQOffset/2;
     end
-    
+
 %% SESSION-BASED ACQUISITION CODE
     
 %    CHANNEL SET-UP:
@@ -90,9 +90,13 @@ function data = Acquire_Trial_Odor(expNumber,trialDuration, odor, valveID, Istep
         s.queueOutputData(outputData); 
     else
         % Load output data for current step
-        s.addAnalogOutputChannel('Dev2', 0, 'Voltage');
-        s.queueOutputData(Icommand);     
+        s.addAnalogOutputChannel('Dev2', 0, 'Voltage');  
+        outputData = Icommand;
     end
+    s.queueOutputData(outputData); 
+        
+    % Save all command data
+    data(n).outputData = outputData;
     
     s.Rate = data(n).samprateout;
     rawAcqData = s.startForeground();

@@ -38,6 +38,7 @@ function [data, n] = acquisitionSetup(expNumber, trialDuration, iontoDuration, e
     data(n).ejectionDuration = ejectionDuration; % length of picopump activation in msec
     data(n).iontoDuration = iontoDuration;  % Ionto duration in sec [pre-ionto, ionto on, post-ionto]
     data(n).valveID = valveID;
+    data(n).shutterTelegraph = [];  % Output from shutter driver reporting physical location of shutter
 
   % Current command parameters
     data(n).Istep = Istep;
