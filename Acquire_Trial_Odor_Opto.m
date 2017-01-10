@@ -67,11 +67,12 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
         stepOut = ones(sampRate * data(n).stepLength, 1) * (Ihold + Istep)/2;
         postStepOut = ones(sampRate * (sum(trialDuration) - (data(n).stepStartTime + data(n).stepLength)), 1) * Ihold/2;
         Icommand = [preStepOut; stepOut; postStepOut];
-        if ~isempty(iontoDuration)
-            iontoStepStart = (iontoDuration(1) + data(n).stepStartTime) * sampRate;
-            iontoStepEnd = (iontoDuration(1) + data(n).stepStartTime + data(n).stepLength) * sampRate;
-            Icommand(iontoStepStart:iontoStepEnd) = (Ihold + Istep)/2;
-        end
+        % Add a second step if using a non-olfactory stimulus
+%         if ~isempty(stimDuration)
+%             stimStepStart = (stimDuration(1) + data(n).stepStartTime) * sampRate;
+%             stimStepEnd = (stimDuration(1) + data(n).stepStartTime + data(n).stepLength) * sampRate;
+%             Icommand(stimStepStart:stimStepEnd) = (Ihold + Istep)/2;
+%         end
     else
         Icommand = ones(sampRate*sum(trialDuration),1) * Ihold/2;
     end
@@ -143,11 +144,11 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
     if stimOn
         plot([trialDuration(1), trialDuration(1)],ylim, 'Color', 'k') % Odor stim onset
         plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'k')  % Odor stim offset
-        if ~isempty(iontoDuration)
-            iontoStart = iontoDuration(1);
-            iontoEnd = sum(iontoDuration(1:2));
-            plot([iontoStart, iontoStart], ylim, 'Color' , 'r')  % Iontophoresis start
-            plot([iontoEnd, iontoEnd], ylim, 'Color', 'r')  % Iontophoresis end
+        if ~isempty(optoDuration)
+            stimStart = optoDuration(1);
+            stimEnd = sum(optoDuration(1:2));
+            plot([stimStart, stimStart], ylim, 'Color' , 'r')  % non-odor stim start
+            plot([stimEnd, stimEnd], ylim, 'Color', 'r')  % Non-odor stim end
         end
     end
     title(['Trial Number ' num2str(n) ]);
@@ -167,11 +168,11 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
     if stimOn
         plot([trialDuration(1), trialDuration(1)],ylim, 'Color', 'k') % Odor stim onset
         plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'k')  % Odor stim offset
-        if ~isempty(iontoDuration)
-            iontoStart = iontoDuration(1);
-            iontoEnd = sum(iontoDuration(1:2));
-            plot([iontoStart, iontoStart], ylim, 'Color' , 'm')  % Iontophoresis start
-            plot([iontoEnd, iontoEnd], ylim, 'Color', 'm')  % Iontophoresis end
+        if ~isempty(optoDuration)
+            stimStart = optoDuration(1);
+            stimEnd = sum(optoDuration(1:2));
+            plot([stimStart, stimStart], ylim, 'Color' , 'm')  % Non-odor stim start
+            plot([stimEnd, stimEnd], ylim, 'Color', 'm')  % Non-odor stim end
         end
     end
     title(['Trial Number ' num2str(n) ]);

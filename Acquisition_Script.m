@@ -1,11 +1,11 @@
 
-expNum = 1; 
-trialDuration = [10 1 19];    % [pre-stim, clean valve open, post-stim]
+expNum = 2; 
+trialDuration = [10 1 9];    % [pre-stim, clean valve open, post-stim]
 Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'Acetoin_e-2', '2-Butanone_e-2', 'Farnesol_e-2', 'ParaffinOil'};
+odors = {'EthylAcetate_e-7', 'Farnesol_e-3', 'Farnesol_e-2', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -22,7 +22,7 @@ end
 initialPatchingAcq(expNum);
 
 %% ACQUIRE TRACE
-traceDuration = 60; % Time to acquire in seconds
+traceDuration = 20; % Time to acquire in seconds
 for iTrial = 1
 Acquire_Trial_Odor(expNum, traceDuration, [], [], Istep, Ihold); 
 end
@@ -50,6 +50,29 @@ for iTrial = 1:nTrials
 end 
 disp('End of block');
 
+%% RUN OPTO STIM TRIAL(S)
+
+optoDuration = [8 3 9];
+
+% Setup trials of a single odor with alternating light stim (opto on  trial)
+valveNum = 3;
+nReps = 1;
+trialOdor = odors{valveNum};
+optoDurationList = repmat({[] ; optoDuration}, nReps, 1);
+ 
+% Make sure opto and trial durations sum to the same number
+if sum(trialDuration) ~= sum(optoDuration)
+    disp('Duration mismatch!')
+    return
+end
+
+% Run Trials
+nTrials = length(optoDurationList);
+for iTrial = 1:nTrials
+    disp(['iTrial = ', num2str(iTrial), ', Odor = ' trialOdor])
+    Acquire_Trial_Odor_Opto(expNum, trialDuration, optoDurationList{iTrial}, trialOdor, valveNum, Istep, Ihold);
+end 
+disp('End of block');
 
 %% RUN IONTOPHORESIS TRIAL(S)
 

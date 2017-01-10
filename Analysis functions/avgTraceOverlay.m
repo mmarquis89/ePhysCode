@@ -48,7 +48,7 @@ end
 
 % Create annotation line info
 if ~isempty(bl.iontoDuration)
-    annotLines = [bl.iontoStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.iontoStartTime + bl.iontoLength];    
+    annotLines = [bl.altStimStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.altStimStartTime + bl.altStimLength];    
     annotColors = [1,0,1; 0,0,0; 0,0,0; 1,0,1];
 else
     annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    

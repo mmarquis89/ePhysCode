@@ -1,9 +1,9 @@
-function [data, n] = acquisitionSetup(expNumber, trialDuration, iontoDuration, ejectionDuration, odor, valveID, Istep, Ihold)
+function [data, n] = acquisitionSetup(expNumber, trialDuration, altStimDuration, ejectionDuration, odor, valveID, Istep, Ihold)
 % ===========================================================================================================================
 % The purpose of this function is to consolidate all the setup steps that are common across different types of acquisition 
 % functions, to minimize the risk of inconsistencies when I change one function.
 % 
-% If trial is not using iontophoresis or pressure ejection, pass an empty vector for those arguments.
+% If trial is not using iontophoresis/light stimulus or pressure ejection, pass an empty vector for those arguments.
 % ===========================================================================================================================
 
 %%  CREATE DIRECTORIES AS NEEDED
@@ -36,7 +36,7 @@ function [data, n] = acquisitionSetup(expNumber, trialDuration, iontoDuration, e
     sampRate = 20000;   % Note hardcoded sampling rate
     data(n).trialduration = trialDuration;  % Trial duration in sec [pre-stim, valves open, post-stim]
     data(n).ejectionDuration = ejectionDuration; % length of picopump activation in msec
-    data(n).iontoDuration = iontoDuration;  % Ionto duration in sec [pre-ionto, ionto on, post-ionto]
+    data(n).altStimDuration = altStimDuration;  % Non-odor stimulus (e.g. iontophoresis, LED illumination) duration in sec [pre-stim, stim on, post-stim]
     data(n).valveID = valveID;
     data(n).shutterTelegraph = [];  % Output from shutter driver reporting physical location of shutter
 

@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Jan-04', 1);
+expData = loadExperiment('2017-Jan-09', 2);
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -34,7 +34,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [6:13];
+trialList = [39];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -68,22 +68,26 @@ else
     bl.stimLength = [];
 end
 
-% If iontophoresis was used, save the ionto timing info
-iontoCell = {block.trialInfo.iontoDuration};
-iontoCell = iontoCell(~cellfun(@isempty, iontoCell));
-if ~isempty(iontoCell)
-    bl.iontoDuration = iontoCell{1};
+% If non-odor stimulus was used, save the timing info (backwards-compatible)
+if isfield(block.trialInfo, 'altStimDuration')
+    stimCell = {block.trialInfo.altStimDuration};
 else
-    bl.iontoDuration = [];
+    stimCell = {block.trialInfo.iontoDuration};
+    stimCell = stimCell(~cellfun(@isempty, stimCell));
+    if ~isempty(stimCell)
+        bl.altStimDuration = stimCell{1};
+    else
+        bl.altStimDuration = [];
+    end
 end
 
-% Save iontophoresis start and end times
-if ~isempty(bl.iontoDuration)
-    bl.iontoStartTime = bl.iontoDuration(1);
-    bl.iontoLength = bl.iontoDuration(2);
+% Save non-odor stimulus start and end times
+if ~isempty(bl.altStimDuration)
+    bl.altStimStartTime = bl.altStimDuration(1);
+    bl.altStimLength = bl.altStimDuration(2);
 else
-    bl.iontoStartTime = [];
-    bl.iontoLength = [];
+    bl.altStimStartTime = [];
+    bl.altStimLength = [];
 end
 
 % Save recorded data
@@ -125,21 +129,21 @@ end
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [.01 20];
-f.yLims = [-60 -40];
+f.timeWindow = [6 16];
+f.yLims = [-60 -10];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
 f.title = ['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ... 
-    regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_BackingOff\_30nA+TTX+dTC'];
-f.figLegend = {'Control', 'Ionto'};
+    regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_3sec\_T-2'];
+f.figLegend = {'Control', 'Light'};
 
 traceData = [bl.scaledOut']; % rows are traces
 traceColors = [0,0,1;1,0,0]; % n x 3 RGB array
 
-annotLines = [bl.iontoStartTime, bl.iontoStartTime+bl.iontoLength, ... 
-    bl.stimOnTime, bl.stimOnTime+bl.stimLength]; % vector of xLocs for annotation lines
+annotLines = [bl.altStimStartTime, bl.altStimStartTime+bl.altStimLength, ... 
+    bl.stimStartTime, bl.stimStartTime+bl.stimLength]; % vector of xLocs for annotation lines
 annotColors = [1,0,1;1,0,1;0,0,0;0,0,0]; % m x 3 RGB array for each annotation line
 
 % Plot traces
@@ -185,8 +189,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = []; 
 f.figDims = [10 200 1000 600];
-f.timeWindow = [8 14]; 
-f.yLims = [-55 -45]; 
+f.timeWindow = [9 14]; 
+f.yLims = [-50 -15]; 
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -316,7 +320,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Dec_14_2-butanone_BackingOff_30nA+TTX+dTC';
+filename = 'Jan_09_Exp2__3sec_T-2';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -331,47 +335,6 @@ for iToc = 1:length(t)
 end
 disp(dispStr)
 
-%%
-figDims = [10 550 1650 400];
-filename = 'May_13_R01_Voltage'
-savefig(h, ['C:\Users\Wilson Lab\Desktop\', filename])
-set(h,'PaperUnits','inches','PaperPosition',[10 550 figDims(3)/100 figDims(4)/100])
-print(h, ['C:\Users\Wilson Lab\Desktop\', filename], '-depsc')
-
-figDims = [10 50 1650 400];
-filename = 'May_13_R01_Current'
-set(j,'PaperUnits','inches','PaperPosition',[10 50 figDims(3)/100 figDims(4)/100])
-print(j, ['C:\Users\Wilson Lab\Desktop\', filename], '-depsc')
-
-%% COMPARE TOTAL SPIKES ACROSS CONDITIONS
-
-timeWin = [bl.trialDuration(1), sum(bl.trialDuration(1:2))];
-
-% Convert spike locations to seconds and save in cell array
-spikeTimes = cell(bl.nTrials, 1);
-for iTrial = 1:bl.nTrials
-    spikeTimes{iTrial} = (bl.spikes(iTrial).locs ./ bl.sampRate)';     
-end
-
-% Separate spike data
-controlTrials = spikeTimes(bl.pumpOn == 0);  
-ejectTrials = spikeTimes(bl.pumpOn == 1);
-
-% Calculate avg total spikes
-ctlSpks = [controlTrials{:}];
-ejtSpks = [ejectTrials{:}];
-ctlSpkMean = mean(ctlSpks(ctlSpks > timeWin(1) & ctlSpks < timeWin(2)));
-ejtSpkMean = mean(ejtSpks(ejtSpks > timeWin(1) & ejtSpks < timeWin(2)));
-
-%% Filter current
-[b,a] = butter(2,.004,'low');
-D = designfilt('lowpassiir', ...
-    'PassbandFrequency', 15, ...
-    'StopbandFrequency', 100, ...
-    'StopbandAttenuation', 100, ...
-    'SampleRate', 10000);
-fvtool(D)
-bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
 
 %% PLOT FREQUENCY CONTENT OF FIRST TRIAL
 
@@ -395,65 +358,15 @@ plot(fValsV, 10*log10(pfftC));
 title('Current'); xlabel('Frequency (Hz)'); ylabel('PSD(dB)'); xlim([-300 300]);
 ylim([-100 0]);
 
-%% USE A 60+120 HZ FILTER TO REMOVE LINE NOISE
-freq = 60;                                                                                      % Set filter parameters
-bWidth = 40;
-for iTrial = 1:bl.nTrials
-    bl.voltage(:,iTrial) = notchFilter(bl.voltage(:,iTrial),bl.sampRate, freq, bWidth);       % Apply to each trial
-    bl.current(:,iTrial) = notchFilter(bl.current(:,iTrial),bl.sampRate, freq, bWidth);
-    bl.scaledOut(:,iTrial) = notchFilter(bl.scaledOut(:,iTrial), bl.sampRate, freq, bWidth);
-end
 
-freq = 120;                                                                                      % Set filter parameters
-bWidth = 40;
-for iTrial = 1:bl.nTrials
-    bl.voltage(:,iTrial) = notchFilter(bl.voltage(:,iTrial),bl.sampRate, freq, bWidth);       % Apply to each trial
-    bl.current(:,iTrial) = notchFilter(bl.current(:,iTrial),bl.sampRate, freq, bWidth);
-    bl.scaledOut(:,iTrial) = notchFilter(bl.scaledOut(:,iTrial), bl.sampRate, freq, bWidth);
-end
+%% Filter current
+[b,a] = butter(2,.004,'low');
+D = designfilt('lowpassiir', ...
+    'PassbandFrequency', 15, ...
+    'StopbandFrequency', 100, ...
+    'StopbandAttenuation', 100, ...
+    'SampleRate', 10000);
+fvtool(D)
+bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
 
-%% LOWPASS FILTER THE VOLTAGE TRACES
-% All frequency values are in Hz.
-Fs = 10000;  % Sampling Frequency
-N  = 50;  % Order
-Fc = 15;   % Cutoff Frequency
-% Construct an FDESIGN object and call its BUTTER method.
-h  = fdesign.lowpass('N,F3dB', N, Fc, Fs);
-Hd = design(h, 'butter');
-lpfTrials = [];
-for iTrial = 1:bl.nTrials
-    filt = filter(Hd,bl.scaledOut(:,iTrial)');
-    filt2 = filter(Hd, filt(end:-1:1));
-    lpfTrials(:, iTrial) = filt2(end:-1:1); 
-end
-bl.scaledOut = lpfTrials;
-
-%% Plot iontophoresis figs for each odor
-for iOdor = 1:4
-    h = figure(iOdor); clf; hold on
-    f = figInfo;
-    f.figDims = [10 200 660 400];
-    f.timeWindow = [7 13];
-    f.lineWidth = 1.5;
-    f.yLims = [-55 -25]; 
-    
-    traceData = [bl.scaledOut(:, 2*iOdor - 1:2*iOdor)]';
-    traceColors = [1 0 0; 0 0 1];
-
-    plotTraces(h, bl, f, traceData, traceColors, [], []);
-    plot([8 8], [-55 -25], 'Color', 'm', 'linewidth', 2)
-    plot([11 12;11 12], [-55 -55; -25 -25], 'Color', 'k', 'linewidth', 2)
-    legend({'Iontophoresis'; 'Control'},'Location', 'northwest')
-    
-    tic; t = [];
-    filename = ['May_01_', bl.odors{2*iOdor}];
-    savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
-    t(1) = toc; tL{1} = 'Local save';
-    savefig(h, ['U:\Data Backup\Figs\', filename])
-    t(2) = toc; tL{2} = 'Server save';
-    set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
-    print(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\PNG files\', filename], '-dpng') 
-    t(3) = toc; tL{3} = 'Local PNG save';
-    
-end
 

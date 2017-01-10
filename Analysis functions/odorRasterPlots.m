@@ -22,8 +22,8 @@ odors = odors(valveList);
 % Set figInfo properties and annotation line info
 figInfo.yLabel = 'Trial Number';
 figInfo.xLabel = 'Time (sec)';
-if ~isempty(bl.iontoDuration)
-    annotLines = [bl.iontoStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.iontoStartTime + bl.iontoLength];    
+if ~isempty(bl.altStimDuration)
+    annotLines = [bl.altStimStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.altStimStartTime + bl.altStimLength];    
     annotColors = [1,0,1; 0,0,0; 0,0,0; 1,0,1];
 else
     annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    

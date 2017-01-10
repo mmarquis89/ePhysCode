@@ -87,7 +87,6 @@ function data = Acquire_Trial_Odor(expNumber,trialDuration, odor, valveID, Istep
         outputData(:,1) = shuttleValveOut;
         outputData(:, valveID + 1) = isoValveOut;
         outputData(:,6) = Icommand;
-        s.queueOutputData(outputData); 
     else
         % Load output data for current step
         s.addAnalogOutputChannel('Dev2', 0, 'Voltage');  

@@ -68,11 +68,10 @@ function data = initialPatchingAcq(expNumber)
 %% RUN POST-PROCESSING AND SAVE DATA
     if ~saveToggle
         % Delete acquired data
-        disp([char(10), 'Initial acquisition data discarded']);
         clear contAcqData;
+        disp([char(10), 'Initial acquisition data discarded']);
     else
         % Process and save acquired data
-        disp([char(10), 'Saving initial acquisition data...']);
         [data, ~, scaledOut, ~] = acquisitionPostProcessing(data, contAcqData, n);
         disp('Initial acquisition data saved');
 
@@ -95,6 +94,7 @@ function data = initialPatchingAcq(expNumber)
 
 %% CALLBACK FUNCTIONS
     function saveData(src, event)
+        disp([char(10), 'Saving initial acquisition data...']);
         saveToggle = true;
         delete(gcbf)
     end
