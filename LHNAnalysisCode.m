@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Jan-09', 2);
+expData = loadExperiment('2017-Jan-09', 1);
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -34,7 +34,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [39];
+trialList = [39 40];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -117,6 +117,7 @@ if bl.nTrials == 1
 end
 % legend({'Baseline', 'First Ejection', 'Last Ejection'})
 end 
+
     %% Calculate seal resistance
     bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage)
     
@@ -130,21 +131,20 @@ f = figInfo;
 f.figDims = [10 300 1900 500];
 
 f.timeWindow = [6 16];
-f.yLims = [-60 -10];
+f.yLims = [-60 -20];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
 f.title = ['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ... 
     regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_3sec\_T-2'];
-f.figLegend = {'Control', 'Light'};
+f.figLegend = {'Control'};
 
 traceData = [bl.scaledOut']; % rows are traces
 traceColors = [0,0,1;1,0,0]; % n x 3 RGB array
 
-annotLines = [bl.altStimStartTime, bl.altStimStartTime+bl.altStimLength, ... 
-    bl.stimStartTime, bl.stimStartTime+bl.stimLength]; % vector of xLocs for annotation lines
-annotColors = [1,0,1;1,0,1;0,0,0;0,0,0]; % m x 3 RGB array for each annotation line
+annotLines = {[bl.stimOnTime, bl.stimOnTime+bl.stimLength]}; % cell array of xLocs for annotation lines
+annotColors = [0,0,0]; % m x 3 RGB array for each annotation line
 
 % Plot traces
 h = figure(1); clf; hold on;
@@ -294,7 +294,7 @@ figure(4), hist(allPks,30); title(['n = ', num2str(length(allPks))]);
     f.figDims = [10 50 1650 400];
     f.yLabel = 'Current (pA)';
     
-    annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];
+    annotLines = {bl.stimOnTime, bl.stimOnTime + bl.stimLength};
     annotColors = [0,.75,0;.75,0,0];
     if bl.nTrials > 1
         cm = winter(bl.nTrials);
@@ -309,7 +309,7 @@ figure(4), hist(allPks,30); title(['n = ', num2str(length(allPks))]);
     
 %% PLOT SPIKE RASTERS
 f = figInfo;
-f.timeWindow = [9 14];
+f.timeWindow = [6 16];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
 nBins = (diff(f.timeWindow)+1)*4;

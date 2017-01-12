@@ -45,7 +45,7 @@ function [data, n] = acquisitionSetup(expNumber, trialDuration, altStimDuration,
     data(n).Ihold = Ihold;
     data(n).stepStartTime = 1; % Note hardcoded parameters here
     data(n).stepLength = 1;
-    data(n).DAQOffset = 0.5;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
+    data(n).DAQOffset = 4.25;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
     
   % Experiment information
     data(n).date = strDate;            % experiment date

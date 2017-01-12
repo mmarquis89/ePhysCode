@@ -23,20 +23,21 @@ end
 
 % Set shared parameters
 traceColors = cm;
-if ~isempty(bl.iontoDuration)
-    annotLines = [bl.iontoStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.iontoStartTime + bl.iontoLength];    
+if ~isempty(bl.altStimDuration)
+    annotLines = {bl.altStimStartTime, bl.stimOnTime, bl.stimOnTime + bl.stimLength, bl.altStimStartTime + bl.altStimLength};    
     annotColors = [1,0,1; 0,0,0; 0,0,0; 1,0,1];
 else
-    annotLines = [bl.stimOnTime, bl.stimOnTime + bl.stimLength];    
+    annotLines = {bl.stimOnTime, bl.stimOnTime + bl.stimLength};    
     annotColors = [0,0,0; 0,0,0];
 end
+
+
 
 figInfo.xLabel = 'Time (sec)';
 
 % Set legend entries
 if ~isempty(annotLines)
-    figInfo.figLegend = cell(1, bl.nTrials + 2);
-    figInfo.figLegend(bl.nTrials+1:end) = {'Odor onset' 'Odor offset'};
+    figInfo.figLegend = {'Odor Stimulus'};
 end
 
 % Voltage plot

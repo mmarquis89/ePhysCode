@@ -1,5 +1,5 @@
 
-expNum = 2; 
+expNum = 1; 
 trialDuration = [10 1 9];    % [pre-stim, clean valve open, post-stim]
 Istep = [];
 Ihold = 0;
@@ -22,9 +22,9 @@ end
 initialPatchingAcq(expNum);
 
 %% ACQUIRE TRACE
-traceDuration = 20; % Time to acquire in seconds
+traceDuration = 10; % Time to acquire in seconds
 for iTrial = 1
-Acquire_Trial_Odor(expNum, traceDuration, [], [], Istep, Ihold); 
+    Acquire_Trial_Odor(expNum, traceDuration, [], [], Istep, Ihold);
 end
 
 %% RUN ODOR TRIAL(S)

@@ -45,15 +45,17 @@ plotSpikeRaster(spikeTimes, 'XLimForCell', [tStart, tStop], 'PlotType', 'Vertlin
 xlim([tStart, tStop]);
 
 % Plot annotation lines
-aH = {};
+yLims = ylim
 for iLine = 1:length(annotLines)
-     if annotLines(iLine) >= tStart && annotLines(iLine) <= tStop
-         aH{length(aH)+1} = plot([annotLines(iLine), annotLines(iLine)], ylim, 'color', annotColors(iLine, :), 'linewidth', 2);
-%      else
-%          if ~isempty(figInfo.figLegend)
-%             figInfo.figLegend(nTraces+iLine) =  [];
-%          end
-     end
+    if min(annotLines{iLine}) >= tStart && max(annotLines{iLine}) <= tStop
+        if length(annotLines{iLine}) == 1
+            plot([annotLines{iLine}, annotLines{iLine}], yLims, 'color', annotColors(iLine, :), 'linewidth', 2);
+        elseif length(annotLines{iLine}) == 2
+            yLen = abs(yLims(1)-yLims(2));
+            rectangle('Position', [annotLines{iLine}(1), (yLims(2)-0.01*yLen)-0.05*yLen, diff(annotLines{iLine}), 0.025*yLen], ...
+                'FaceColor', annotColors(iLine, :), 'EdgeColor', annotColors(iLine, :))
+        end
+    end
 end
 
 % Add title and label axes

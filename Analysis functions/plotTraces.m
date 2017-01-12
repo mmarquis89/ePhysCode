@@ -1,5 +1,5 @@
 function [h] = plotTraces(h, bl, figInfo, traceData, traceColors, annotLines, annotColors)
-% ==============================================================================================
+% =============================================================================================================
 % Creates a new figure, formats it using the figInfo object and block structure, and plots one 
 % or more traces and/or vertical marker lines
 % h = handle of the figure to plot in
@@ -14,9 +14,13 @@ function [h] = plotTraces(h, bl, figInfo, traceData, traceColors, annotLines, an
     % figLegend: cell array of legend text ([] to skip an object)
 % traceData: array, each row is a trace to be plotted
 % traceColors: nx3 array, each row is the color for one trace
-% annotLines: vector of the xLocs for each vertical marker line
-% annotColors: the color for each annotation line
-% ==============================================================================================
+% annotLines: cell array with of the xLoc(s) for each stimulus marker line
+    % Use a single number to plot a vertical line at the xLoc. 
+    % Use a 2-number vector for a horizontal line above the plot between the pair of xLocs.
+% annotLineType: character vector with one letter for each xLoc in annotLines
+
+% annotColors: the color for each annotation line. xLocs that are part of a horizontal line must be same color
+% =============================================================================================================
 
 % Initial variable setup
 smpRt = bl.sampRate;    
@@ -66,22 +70,21 @@ else
 end
 
 % Plot annotation lines
-aH = {};
-legendSkip = zeros(1,length(annotLines)+nTraces);
 for iLine = 1:length(annotLines)
-     if annotLines(iLine) >= tStart && annotLines(iLine) <= tStop
-         aH{length(aH)+1} = plot([annotLines(iLine), annotLines(iLine)], yLims, 'color', annotColors(iLine, :), 'linewidth', 2);
-     else
-         if ~isempty(figInfo.figLegend)
-            legendSkip(nTraces + iLine) = 1;
-         end
-     end
+    if min(annotLines{iLine}) >= tStart && max(annotLines{iLine}) <= tStop
+        if length(annotLines{iLine}) == 1
+            plot([annotLines{iLine}, annotLines{iLine}], yLims, 'color', annotColors(iLine, :), 'linewidth', 2);
+        elseif length(annotLines{iLine}) == 2
+            yLen = abs(yLims(1)-yLims(2));
+            rectangle('Position', [annotLines{iLine}(1), (yLims(2)-0.01*yLen)-0.05*yLen, diff(annotLines{iLine}), 0.025*yLen], ...
+                'FaceColor', annotColors(iLine, :), 'EdgeColor', annotColors(iLine, :))
+        end
+    end
 end
-figInfo.figLegend(logical(legendSkip)) = [];
 ylim(yLims);
 
 % Add legend if provided, skipping empty array entries (i.e. [])
-allObj = [tH, aH];
+allObj = [tH];
 if ~isempty(figInfo.figLegend)
     entries = allObj(~cellfun(@isempty, figInfo.figLegend));
     legend([entries{:}], figInfo.figLegend(~cellfun(@isempty, figInfo.figLegend)));
