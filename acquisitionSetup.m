@@ -1,4 +1,4 @@
-function [data, n] = acquisitionSetup(expNumber, trialDuration, altStimDuration, ejectionDuration, odor, valveID, Istep, Ihold)
+function [data, n] = acquisitionSetup(acqSettings)
 % ===========================================================================================================================
 % The purpose of this function is to consolidate all the setup steps that are common across different types of acquisition 
 % functions, to minimize the risk of inconsistencies when I change one function.
@@ -16,46 +16,46 @@ function [data, n] = acquisitionSetup(expNumber, trialDuration, altStimDuration,
     end
 
 %% CREATE DATA STRUCTURE AS NEEDED
-    D = dir(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(expNumber),'.mat']);
+    D = dir(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'.mat']);
     if isempty(D)           
         % If no saved data exists then this is the first trial
         n = 1 ;
     else
         % Load current data file
-        load(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(expNumber),'.mat']','data');
+        load(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'.mat']','data');
         n = length(data)+1;
     end
 
-    %% SAVE CURRENT GIT HASH
+%% SAVE CURRENT GIT HASH
 
     data(n).gitHash = getCodeStamp(mfilename('fullpath'));
 
- %% RECORD TRIAL PARAMETERS
+%% RECORD TRIAL PARAMETERS
  
-    data(n).odor = odor;
-    sampRate = 20000;   % Note hardcoded sampling rate
-    data(n).trialduration = trialDuration;  % Trial duration in sec [pre-stim, valves open, post-stim]
-    data(n).ejectionDuration = ejectionDuration; % length of picopump activation in msec
-    data(n).altStimDuration = altStimDuration;  % Non-odor stimulus (e.g. iontophoresis, LED illumination) duration in sec [pre-stim, stim on, post-stim]
-    data(n).valveID = valveID;
+    data(n).odor = acqSettings.odor;
+    data(n).trialduration = acqSettings.trialDuration;  % Trial duration in sec [pre-stim, valves open, post-stim]
+    data(n).altStimDuration = acqSettings.altStimDuration;  % Non-odor stimulus (e.g. iontophoresis, LED illumination) duration in sec [pre-stim, stim on, post-stim]
+    data(n).altStimType = acqSettings.altStimType;  % String describing the type of alternative stim being used (e.g. 'opto', 'ionto', 'eject', etc.)
+    data(n).valveID = acqSettings.valveID;
     data(n).shutterTelegraph = [];  % Output from shutter driver reporting physical location of shutter
-
+    data(n).cameraStrobe = [];      % Input from the behavior camera reporting exact integration times for each frame
+    
   % Current command parameters
-    data(n).Istep = Istep;
-    data(n).Ihold = Ihold;
-    data(n).stepStartTime = 1; % Note hardcoded parameters here
-    data(n).stepLength = 1;
-    data(n).DAQOffset = 4.25;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
+    data(n).Istep = acqSettings.Istep;
+    data(n).Ihold = acqSettings.Ihold;
+    data(n).stepStartTime = acqSettings.stepStartTime; % Note hardcoded parameters here
+    data(n).stepLength = acqSettings.stepLength;
+    data(n).DAQOffset = acqSettings.DAQOffset;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
     
   % Experiment information
     data(n).date = strDate;            % experiment date
-    data(n).expnumber = expNumber;     % experiment number
+    data(n).expnumber = acqSettings.expNum;     % experiment number
     data(n).trial = n;                 % trial number
     data(n).sampleTime = clock;
     
   % Sampling rates
-    data(n).sampratein = sampRate;             % input sample rate
-    data(n).samprateout = sampRate;            % output sample rate becomes input rate as well when both input and output present
+    data(n).sampratein = acqSettings.sampRate;             % input sample rate
+    data(n).samprateout = acqSettings.sampRate;            % output sample rate becomes input rate as well when both input and output present
         
   % Amplifier gains to be read or used
     data(n).variableGain = NaN;                % Amplifier 1 alpha

@@ -8,7 +8,7 @@ function [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, raw
 % ================================================================================================= 
 
 strDate = data(n).date;
-expNumber = data(n).expnumber;
+expNumber = data(n).expNum;
 
   % Calculate and record "Output Gain" setting on amplifier
     gainReading = mean(rawAcqData(:,4));
@@ -55,7 +55,10 @@ expNumber = data(n).expnumber;
     elseif scaledOutMode >= 3.5 && scaledOutMode < 7
         data(n).scaledOutMode = 'I';
     end 
-        
+    
+  % Record camera strobe data
+  data(n).cameraStrobe = rawAcqData(:,7);
+  
   % Save recorded data
     scaledOut = (rawAcqData(:,1)/data(n).variableGain)*1000; % mV or pA
     current = (rawAcqData(:,2)/data(n).ImGain)*1000; % pA 

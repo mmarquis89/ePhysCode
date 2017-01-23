@@ -15,9 +15,10 @@ function data = Acquire_Trial_Odor_Opto(expNumber,trialDuration, optoDuration, o
 % ====================================================================================================================
 %% SETUP TRIAL PARAMETERS
 
-[data,n] = acquisitionSetup(expNumber, trialDuration, optoDuration, [], odor, valveID, Istep, Ihold);
-sampRate = data(n).sampratein;
-data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
+    % Run initial setup function
+    [data,n] = acquisitionSetup(expNumber, trialDuration, optoDuration, [], odor, valveID, Istep, Ihold);
+    sampRate = data(n).sampratein;
+    data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
 
     % Check if trial will use stimulus
     if length(trialDuration) == 1
@@ -97,7 +98,7 @@ data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfil
     end
     
     if stimOn
-        % Setup output channels
+        % Setup olfactometer output channels
         s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');       % Shuttle valve       
         s.addDigitalChannel('Dev2', 'port0/line8:11', 'OutputOnly');    % 2-way iso valves
         s.addAnalogOutputChannel('Dev2', 0 , 'Voltage');                % Amplifier external command        

@@ -15,9 +15,10 @@ function data = Acquire_Trial_Odor_Ionto(expNumber, trialDuration, iontoDuration
 % ================================================================================================================
 %% SETUP TRIAL PARAMETERS
 
-[data,n] = acquisitionSetup(expNumber, trialDuration, iontoDuration, [], odor, valveID, Istep, Ihold);
-sampRate = data(n).sampratein;
-data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
+    % Run initial setup function
+    [data,n] = acquisitionSetup(expNumber, trialDuration, iontoDuration, [], odor, valveID, Istep, Ihold);
+    sampRate = data(n).sampratein;
+    data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
 
     % Check if trial will use stimulus
     if length(trialDuration) == 1

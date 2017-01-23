@@ -1,15 +1,18 @@
-function data = initialPatchingAcq(expNumber)
+function data = initialPatchingAcq(acqSettings)
 % ====================================================================================================
 % Starts continuously acquiring data at 80000 samples/sec until user clicks a button on a simple GUI
 % instructing the function to either discard the acquired data or save it in a single file.
-%   expNumber = experiment (fly or cell) number
+
+%   acqSettings: an acqSettings object with all properties set to defaults, except:
+        % expNumber = experiment (fly or cell) number
+
 %   Raw data sampled at 80 kHz and saved in a single file.
 % ====================================================================================================
 
 % SETUP TRIAL PARAMETERS
     
     % Run initial setup function
-    [data, n] = acquisitionSetup(expNumber,[], [], [], [], [], [], []);
+    [data, n] = acquisitionSetup(acqSettings);
     data(n).sampratein = 80000;
     data(n).samprateout = 80000;
     sampRate = data(n).sampratein;
@@ -57,7 +60,7 @@ function data = initialPatchingAcq(expNumber)
         drawnow
     end
     
-    % End acquisition and trim to nearest second
+    % End acquisition when figure is closed and trim duration to nearest second
     s.stop();
     data(n).trialduration = floor(size(contAcqData, 1) / sampRate);  % Round duration down to nearest second
     contAcqData = contAcqData(1:data(n).trialduration*sampRate,:);   % Trim acquired data to the nearest second
