@@ -28,7 +28,7 @@ function data = Acquire_Trial(acqSettings)
 % ====================================================================================================================
 
 %% SETUP TRIAL PARAMETERS AND STIMULUS DATA
-    
+    tic
     % Pull variables from settings
     trialDuration = acqSettings.trialDuration;
     altStimDuration = acqSettings. altStimDuration;
@@ -41,12 +41,19 @@ function data = Acquire_Trial(acqSettings)
     [data, n] = acquisitionSetup(acqSettings);
     sampRate = data(n).sampratein;
     data(n).acquisition_filename = mfilename('fullpath');       % Saves name of mfile that generated data
-
+    
     % Check if trial will use stimulus
     if length(trialDuration) == 1
         stimOn = 0;
     else
         stimOn = 1;
+    end
+    
+    % Make sure temporary camera directory doesn't already have images
+    tempDir = 'C:/tmp/*';
+    dirContents = dir(tempDir(1:end-1));
+    if ~isempty(dirContents([dirContents.isdir] & ~strncmpi('.', {dirContents.name},1)))
+        delete('C:/tmp/*.tiff');
     end
     
     % Set up odor stimulus data
@@ -121,7 +128,6 @@ function data = Acquire_Trial(acqSettings)
     triggerInterval = round(sampRate / acqSettings.frameRate);
     camTrigOut(1:triggerInterval:end) = 1;
     
-
 %% SESSION-BASED ACQUISITION CODE
     
 %    CHANNEL SET-UP:
@@ -135,6 +141,7 @@ function data = Acquire_Trial(acqSettings)
     
     % Setup session and input channels
     s = daq.createSession('ni');
+disp(['Stimulus and session created:' num2str(toc)]);
     s.DurationInSeconds = sum(data(n).trialduration);
     s.Rate = data(n).sampratein;
     s.addAnalogInputChannel('Dev2', 0:5,'Voltage');                      % Amplifier data and telegraphs 
@@ -142,18 +149,24 @@ function data = Acquire_Trial(acqSettings)
         s.Channels(1,iChan).InputType = 'SingleEnded';
     end
     s.addDigitalChannel('Dev2', 'port0/line29', 'InputOnly');            % Camera strobe input
-    
+disp(['Input channels added:' num2str(toc)]);    
     % Setup output channels
-    s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');            % Olfactometer shuttle valve        
+    s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');            % Olfactometer shuttle valve
+disp(['Output 1 added:' num2str(toc)]);
     s.addDigitalChannel('Dev2', 'port0/line8:11', 'OutputOnly');         % Olfactometer 2-way iso valves
+disp(['Output 2 added:' num2str(toc)]);
     s.addAnalogOutputChannel('Dev2', 0, 'Voltage');                      % Amplifier external command
+disp(['Output 3 added:' num2str(toc)]);
     s.addDigitalChannel('Dev2', acqSettings.altStimChan, 'OutputOnly');  % Alternate stim command
+disp(['Output 4 added:' num2str(toc)]);
     s.addDigitalChannel('Dev2', 'port0/line28', 'OutputOnly');           % Camera trigger command
-    
+ disp(['Output channel 5 added:' num2str(toc)]);   
     % Load output data for each channel
     outputData = zeros(sum(trialDuration*sampRate), 8);
-    outputData(:,1) = shuttleValveOut;
-    outputData(:, valveID + 1) = isoValveOut;
+    if stimOn
+        outputData(:,1) = shuttleValveOut;
+        outputData(:, valveID + 1) = isoValveOut;
+    end
     outputData(:,6) = Icommand;
     outputData(:,7) = altStimOut; 
     outputData(:,8) = camTrigOut;
@@ -161,31 +174,37 @@ function data = Acquire_Trial(acqSettings)
     % Save all command data and queue for output
     data(n).outputData = outputData;
     s.queueOutputData(outputData);
-    
+  
     % Start acquisition
     s.Rate = data(n).samprateout;
+disp(['Starting acquisition:' num2str(toc)]);
     rawAcqData = s.startForeground();
 
 %% RUN POST-PROCESSING AND SAVE DATA
     [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, rawAcqData, n);
+   
+    % Move camera files from temp directory to local and network folders
+    savePath = ['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data(n).date, '/E', num2str(acqSettings.expNum), '_T', num2str(n), '/'];
     
-  % Move camera files from temp directory to local and network folders
-  tempDir = 'C:\tmp\fc2_save\*';
-  savePath = ['C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies\', data(n).date, '\E', num2str(acqSettings.expNum), '_T', num2str(n), '\'];
-  networkPath = ['U:\Data Backup\_Movies\', data(n).date, '\E', num2str(acqSettings.expNum), '_T', num2str(n), '\'];
-  if ~isdir(savePath)
-     mkdir(savePath); 
-  end
-  if ~isdir(networkPath)
-     mkdir(networkpath) 
-  end
-  try
-     copyfile(tempDir, savePath, 'f');
-     movefile(tempDir, networkPath, 'f');
-  catch
-      disp('Warning: camera not recording!')
-  end
-  
+    % If necessary, add directory path to log file for later backup
+    if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data(n).date, '/'])
+        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/BackupQueueFile.txt', 'a');
+        fprintf(pathLog, ['\r\n_Movies/', data(n).date]);
+        fclose(pathLog);
+    end
+    
+    % Create specific save directory if it doesn't already exist
+    if ~isdir(savePath)
+        mkdir(savePath);
+    end
+    
+    % Move images
+    try
+        movefile(tempDir, savePath, 'f');
+    catch
+        disp('Warning: camera not recording!')
+    end
+
   
 %% PLOT FIGURES
     
@@ -247,5 +266,5 @@ function data = Acquire_Trial(acqSettings)
     % Plot input resistance across experiment
     figure(3); clf; hold on
     plotRins(data);
-    
+
     

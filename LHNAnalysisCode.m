@@ -23,6 +23,7 @@ for iOdor = 1:numel(odors)
     end
 end
 
+
 %% PULL OUT TRIAL BLOCK
 bl = [];
 odorTrials = [];

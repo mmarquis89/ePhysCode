@@ -2,6 +2,7 @@ classdef acqSettings
     % Object to hold various acquisition parameters
 
     properties
+        
         % General parameters
         expNum                     % Experiment (fly or cell) number
         trialDuration              % [pre-stim, clean valve open, post-stim] in seconds. If trialDuration is a single integer, a trace of that duration will be acquired.

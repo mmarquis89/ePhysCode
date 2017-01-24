@@ -12,7 +12,8 @@ odors = {'EthylAcetate_e-7', 'Farnesol_e-3', 'Farnesol_e-2', 'ParaffinOil'};
 strDate = datestr(now, 'yyyy-mmm-dd');
 dList = dir(['data/', strDate,'/Raw_WCwaveform_',strDate,'_E',num2str(expNum),'*.mat']);
 if numel(dList) < 10
-    delete(['data/', strDate,'\*_E',num2str(expNum),'*']);
+    delete(['Data/', strDate,'/*_E',num2str(expNum),'*']);
+    rmdir(['Data/_Movies/', strDate, '/E', num2str(expNum), '*'], 's');
 else
     disp('Too many trials for automatic deletion');
 end
@@ -40,11 +41,11 @@ Acquire_Trial(aS);
 %% RUN ODOR TRIAL(S)
 
 % Create shuffled trial order
-nReps = 2;
+nReps = 1;
 odorList = shuffleTrials(odors(1:4), nReps);
 disp('Shuffle complete')
 %Setup odor and valve list manually
-% odorList = odors([2 2]);
+% odorList = odors([1 2]);
 
 for iFold = 1
     aS = acqSettings;

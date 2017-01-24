@@ -6,13 +6,13 @@ function [data, n] = acquisitionSetup(acqSettings)
 % If trial is not using iontophoresis/light stimulus or pressure ejection, pass an empty vector for those arguments.
 % ===========================================================================================================================
 
-%%  CREATE DIRECTORIES AS NEEDED
+%%  CREATE DIRECTORIES AND UPDATE BACKUP LOG AS NEEDED
     strDate = datestr(now, 'yyyy-mmm-dd');
     if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate])
         mkdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate]);
-    end
-    if ~isdir(['U:/Data Backup/', strDate])
-        mkdir(['U:/Data Backup/', strDate]);
+        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/BackupQueueFile.txt', 'a');
+        fprintf(pathLog, ['\r\n', strDate]);
+        fclose(pathLog);
     end
 
 %% CREATE DATA STRUCTURE AS NEEDED
@@ -33,24 +33,24 @@ function [data, n] = acquisitionSetup(acqSettings)
 %% RECORD TRIAL PARAMETERS
  
     data(n).odor = acqSettings.odor;
-    data(n).trialduration = acqSettings.trialDuration;  % Trial duration in sec [pre-stim, valves open, post-stim]
+    data(n).trialduration = acqSettings.trialDuration;      % Trial duration in sec [pre-stim, valves open, post-stim]
     data(n).altStimDuration = acqSettings.altStimDuration;  % Non-odor stimulus (e.g. iontophoresis, LED illumination) duration in sec [pre-stim, stim on, post-stim]
-    data(n).altStimType = acqSettings.altStimType;  % String describing the type of alternative stim being used (e.g. 'opto', 'ionto', 'eject', etc.)
+    data(n).altStimType = acqSettings.altStimType;          % String describing the type of alternative stim being used (e.g. 'opto', 'ionto', 'eject', etc.)
     data(n).valveID = acqSettings.valveID;
-    data(n).shutterTelegraph = [];  % Output from shutter driver reporting physical location of shutter
-    data(n).cameraStrobe = [];      % Input from the behavior camera reporting exact integration times for each frame
+    data(n).shutterTelegraph = [];                          % Output from shutter driver reporting physical location of shutter
+    data(n).cameraStrobe = [];                              % Input from the behavior camera reporting exact integration times for each frame
     
   % Current command parameters
     data(n).Istep = acqSettings.Istep;
     data(n).Ihold = acqSettings.Ihold;
-    data(n).stepStartTime = acqSettings.stepStartTime; % Note hardcoded parameters here
+    data(n).stepStartTime = acqSettings.stepStartTime; 
     data(n).stepLength = acqSettings.stepLength;
     data(n).DAQOffset = acqSettings.DAQOffset;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
     
   % Experiment information
-    data(n).date = strDate;            % experiment date
-    data(n).expnumber = acqSettings.expNum;     % experiment number
-    data(n).trial = n;                 % trial number
+    data(n).date = strDate;                     % experiment date
+    data(n).expNum = acqSettings.expNum;        % experiment number
+    data(n).trial = n;                          % trial number
     data(n).sampleTime = clock;
     
   % Sampling rates
@@ -64,4 +64,6 @@ function [data, n] = acquisitionSetup(acqSettings)
     data(n).VmGain = 100;
     data(n).ImOffset1 = 0;  
     
+  % Save acqSettings object itself for good measure
+    data(n).acqSettings = acqSettings;
 end
