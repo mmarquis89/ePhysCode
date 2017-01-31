@@ -16,10 +16,10 @@ function data = Acquire_Trial(acqSettings)
     % Istep = the size of the current step to use at the beginning of the trial in pA. Pass '[]' to skip the step.
     % Ihold = the holding current in pA to constantly inject into the cell
 
-% The acqSettings object also has these properties which already have default values:
+% The acqSettings object also has these properties which already have default "semi-hardcoded" values:
     % sampRate (default = 20000): input and output sampling rate for the trial. 
-    % stepStartTime (default = 1): time in seconds from the start of the trial to begin the current step. 
-    % stepLength (default = 1): length of current step in seconds. 
+    % stepStartTime (default = 1): time in seconds from the start of the trial to begin the current test step. 
+    % stepLength (default = 1): length of current test step in seconds. 
     % DAQOffset (default = 4.25): the amount of current the DAQ is injecting when the command is 0. 
     % altStimChan (default = 'port0/line12'): the name of the output channel on the DAQ for the alternate stimulus. 
     % frameRate (default = 30): The rate (in FPS) at which the behavior camera should acquire images during the trial
@@ -28,7 +28,7 @@ function data = Acquire_Trial(acqSettings)
 % ====================================================================================================================
 
 %% SETUP TRIAL PARAMETERS AND STIMULUS DATA
-    tic
+ 
     % Pull variables from settings
     trialDuration = acqSettings.trialDuration;
     altStimDuration = acqSettings. altStimDuration;
@@ -141,43 +141,40 @@ function data = Acquire_Trial(acqSettings)
     
     % Setup session and input channels
     s = daq.createSession('ni');
-disp(['Stimulus and session created:' num2str(toc)]);
     s.DurationInSeconds = sum(data(n).trialduration);
     s.Rate = data(n).sampratein;
-    s.addAnalogInputChannel('Dev2', 0:5,'Voltage');                      % Amplifier data and telegraphs 
+    s.addAnalogInputChannel('Dev2', 0:5,'Voltage');              % Amplifier data and telegraphs 
     for iChan=1:6
         s.Channels(1,iChan).InputType = 'SingleEnded';
     end
-    s.addDigitalChannel('Dev2', 'port0/line29', 'InputOnly');            % Camera strobe input
-disp(['Input channels added:' num2str(toc)]);    
+    s.addDigitalChannel('Dev2', 'port0/line29', 'InputOnly');    % Camera strobe input
+
     % Setup output channels
-    s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');            % Olfactometer shuttle valve
-disp(['Output 1 added:' num2str(toc)]);
-    s.addDigitalChannel('Dev2', 'port0/line8:11', 'OutputOnly');         % Olfactometer 2-way iso valves
-disp(['Output 2 added:' num2str(toc)]);
-    s.addAnalogOutputChannel('Dev2', 0, 'Voltage');                      % Amplifier external command
-disp(['Output 3 added:' num2str(toc)]);
-    s.addDigitalChannel('Dev2', acqSettings.altStimChan, 'OutputOnly');  % Alternate stim command
-disp(['Output 4 added:' num2str(toc)]);
-    s.addDigitalChannel('Dev2', 'port0/line28', 'OutputOnly');           % Camera trigger command
- disp(['Output channel 5 added:' num2str(toc)]);   
+    digiOutputChannels = {'port0/line0', ...        % Olfactometer shuttle valve
+                      'port0/line8:11', ...         % Olfactometer 2-way iso valves
+                      acqSettings.altStimChan, ...  % Alternate stim command
+                      'port0/line28'};              % Camera trigger command 
+                  
+    s.addDigitalChannel('Dev2', digiOutputChannels, 'OutputOnly');
+    s.addAnalogOutputChannel('Dev2', 0, 'Voltage'); % Amplifier external command
+
     % Load output data for each channel
     outputData = zeros(sum(trialDuration*sampRate), 8);
     if stimOn
         outputData(:,1) = shuttleValveOut;
         outputData(:, valveID + 1) = isoValveOut;
     end
-    outputData(:,6) = Icommand;
-    outputData(:,7) = altStimOut; 
-    outputData(:,8) = camTrigOut;
-
+    outputData(:,6) = altStimOut; 
+    outputData(:,7) = camTrigOut;
+    outputData(:,8) = Icommand;
+    
     % Save all command data and queue for output
     data(n).outputData = outputData;
     s.queueOutputData(outputData);
   
     % Start acquisition
     s.Rate = data(n).samprateout;
-disp(['Starting acquisition:' num2str(toc)]);
+
     rawAcqData = s.startForeground();
 
 %% RUN POST-PROCESSING AND SAVE DATA
@@ -188,9 +185,9 @@ disp(['Starting acquisition:' num2str(toc)]);
     
     % If necessary, add directory path to log file for later backup
     if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data(n).date, '/'])
-        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/BackupQueueFile.txt', 'a');
+        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
         fprintf(pathLog, ['\r\n_Movies/', data(n).date]);
-        fclose(pathLog);
+        fclose('all');
     end
     
     % Create specific save directory if it doesn't already exist
@@ -242,7 +239,7 @@ disp(['Starting acquisition:' num2str(toc)]);
     set(gcf,'Position',[10 50 1850 400],'Color',[1 1 1]);
     set(gca,'LooseInset',get(gca,'TightInset'))
     if strcmp(data(n).scaledOutMode, 'V')
-        plot(time(.05*sampRate:end), current(.05*sampRate:end)); 
+        plot(time(.05*sampRate:end), smooth(current(.05*sampRate:end), 1000)); 
         ylabel('Im (pA)');
     elseif strcmp(data(n).scaledOutMode, 'I')
         plot(time(.05*sampRate:end), tenVm(.05*sampRate:end));

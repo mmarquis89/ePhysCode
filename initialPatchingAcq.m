@@ -4,7 +4,7 @@ function data = initialPatchingAcq(acqSettings)
 % instructing the function to either discard the acquired data or save it in a single file.
 
 %   acqSettings: an acqSettings object with all properties set to defaults, except:
-        % expNumber = experiment (fly or cell) number
+        % expNum = experiment (fly or cell) number
 
 %   Raw data sampled at 80 kHz and saved in a single file.
 % ====================================================================================================

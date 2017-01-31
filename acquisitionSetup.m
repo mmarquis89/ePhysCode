@@ -10,9 +10,9 @@ function [data, n] = acquisitionSetup(acqSettings)
     strDate = datestr(now, 'yyyy-mmm-dd');
     if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate])
         mkdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate]);
-        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/BackupQueueFile.txt', 'a');
+        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup', 'a');
         fprintf(pathLog, ['\r\n', strDate]);
-        fclose(pathLog);
+        fclose('all');
     end
 
 %% CREATE DATA STRUCTURE AS NEEDED

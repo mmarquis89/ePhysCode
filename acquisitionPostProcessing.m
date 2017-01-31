@@ -3,8 +3,8 @@ function [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, raw
 % The purpose of this function is to consolidate all the basic post-acquisition steps that are
 % common across different types of acquisition functions, to minimize the risk of inconsistencies
 % when I make changes to one function.
-% data = the main data structure for the trial
-% rawAcqData = the newly acquired data from the DAQ
+%   data = the main data structure for the trial
+%   rawAcqData = the newly acquired data from the DAQ
 % =================================================================================================
 
 strDate = data(n).date;
@@ -79,7 +79,12 @@ else
 end
 
 % Save data(n)
-save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/WCwaveform_' data(n).date,'_E',num2str(expNum)],'data');
+warning('error', 'MATLAB:save:sizeTooBigForMATFile');
+try
+    save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/WCwaveform_' data(n).date,'_E',num2str(expNum)],'data');
+catch
+    save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/WCwaveform_' data(n).date,'_E',num2str(expNum)],'data', '-v7.3');
+end
 save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/Raw_WCwaveform_' data(n).date,'_E',num2str(expNum),'_',num2str(n)],'current','scaledOut','tenVm');
 %save(['U:/Data Backup/', strDate,'/WCwaveform_' data(n).date,'_E',num2str(expNumber)],'data');
 %save(['U:/Data Backup/', strDate,'/Raw_WCwaveform_' data(n).date,'_E',num2str(expNumber),'_',num2str(n)],'current','scaledOut','tenVm');

@@ -1,11 +1,11 @@
 
 expNum = 1; 
-trialDuration = [10 1 9];    % [pre-stim, clean valve open, post-stim]
-Istep = [];
+trialDuration = [5 1 3];    % [pre-stim, clean valve open, post-stim]
+Istep = [-3];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'EthylAcetate_e-7', 'Farnesol_e-3', 'Farnesol_e-2', 'ParaffinOil'};
+odors = {'cVA_e-2', 'GeranylAcetate_e-2', 'ACV_e-2', 'MethylLaurate_e-2'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -18,15 +18,17 @@ else
     disp('Too many trials for automatic deletion');
 end
 
+
 %% ACQUIRE INITIAL PATCHING DATA
 
 aS = acqSettings;
 aS.expNum = expNum;
 initialPatchingAcq(aS);
 
+
 %% ACQUIRE TRACE
 
-traceDuration = 10; % Time to acquire in seconds
+traceDuration = 5; % Time to acquire in seconds
 
 for iFold = 1
     aS = acqSettings;
@@ -41,11 +43,11 @@ Acquire_Trial(aS);
 %% RUN ODOR TRIAL(S)
 
 % Create shuffled trial order
-nReps = 1;
-odorList = shuffleTrials(odors(1:4), nReps);
-disp('Shuffle complete')
+% nReps = 5;
+% odorList = shuffleTrials(odors(1:4), nReps);
+% disp('Shuffle complete')
 %Setup odor and valve list manually
-% odorList = odors([1 2]);
+odorList = odors([1]);
 
 for iFold = 1
     aS = acqSettings;

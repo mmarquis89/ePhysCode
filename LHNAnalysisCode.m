@@ -1,7 +1,13 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Jan-09', 1);
+expData = loadExperiment('2017-Jan-30', 1);
+
+% Queue all data that is at least a day old for backup
+backupLogTransfer();
+
+% Start a background process to actually back it up to the server
+python('C:\Users\Wilson Lab\Documents\Python\dataBackupScript.py')
     
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -35,7 +41,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [39 40];
+trialList = [2];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -69,20 +75,16 @@ else
     bl.stimLength = [];
 end
 
-% If non-odor stimulus was used, save the timing info (backwards-compatible)
+% To maintain backwards-compatability with older data
 if isfield(block.trialInfo, 'altStimDuration')
     stimCell = {block.trialInfo.altStimDuration};
 else
     stimCell = {block.trialInfo.iontoDuration};
     stimCell = stimCell(~cellfun(@isempty, stimCell));
-    if ~isempty(stimCell)
-        bl.altStimDuration = stimCell{1};
-    else
-        bl.altStimDuration = [];
-    end
 end
 
-% Save non-odor stimulus start and end times
+% If non-odor stimulus was used, save the timing info
+bl.altStimDuration = stimCell{1};
 if ~isempty(bl.altStimDuration)
     bl.altStimStartTime = bl.altStimDuration(1);
     bl.altStimLength = bl.altStimDuration(2);
@@ -97,10 +99,11 @@ bl.current = block.data.current;             % 1 - Preamp-filtered current
 bl.scaledOut = block.data.scaledOut;           % 3 - Scaled Output
 
 % PLOT EACH TRIAL VOLTAGE AND CURRENT
-f = figInfo; 
+f = figInfo;
+figInfo.figDims = [10 550 1850 400];
 f.timeWindow = [];
 f.yLims = [];
-f.lineWidth = [1];
+f.lineWidth = [];
 f.cm = winter(bl.nTrials);
 [h,j] = traceOverlayPlot(bl, f);
 legend off
@@ -131,20 +134,20 @@ end
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [6 16];
-f.yLims = [-60 -20];
+f.timeWindow = [.01 16];
+f.yLims = [-55 -30];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
-f.title = ['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ... 
-    regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}') '\_3sec\_T-2'];
+ f.title = []; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ... 
+     %regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')];
 f.figLegend = {'Control'};
 
 traceData = [bl.scaledOut']; % rows are traces
 traceColors = [0,0,1;1,0,0]; % n x 3 RGB array
 
-annotLines = {[bl.stimOnTime, bl.stimOnTime+bl.stimLength]}; % cell array of xLocs for annotation lines
+annotLines = [];%{[bl.stimOnTime, bl.stimOnTime+bl.stimLength]}; % cell array of xLocs for annotation lines
 annotColors = [0,0,0]; % m x 3 RGB array for each annotation line
 
 % Plot traces
@@ -162,18 +165,18 @@ ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
-f.timeWindow = [.01 20];
+f.timeWindow = [7 12];
 f.lineWidth = 1;
-f.yLims = [-50 -40]; 
+f.yLims = [-45 -40]; 
 
-medfilt = 0;
+medfilt = 1;
 offset = 0;
 
 % Specify trial groups
-traceGroups = repmat([1 2],1,2) ;%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0];%jet(numel(trialList));
-f.figLegend = [{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
+f.figLegend = []; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 title([])
@@ -190,8 +193,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = []; 
 f.figDims = [10 200 1000 600];
-f.timeWindow = [9 14]; 
-f.yLims = [-50 -15]; 
+f.timeWindow = [7 13]; 
+f.yLims = [-50 -30]; 
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -313,7 +316,7 @@ f = figInfo;
 f.timeWindow = [6 16];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*4;
+nBins = (diff(f.timeWindow)+1)*8;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -321,12 +324,16 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Jan_09_Exp2__3sec_T-2';
+filename = 'Jan_30_Light_Stim_Trial';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
 t(2) = toc; tL{2} = 'Server save';
-set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
+if exist('f', 'var')
+    set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
+else
+    set(h,'PaperUnits','inches')
+end
 export_fig(['C:\Users\Wilson Lab\Documents\MATLAB\Figs\PNG files\', filename], '-png')
 t(3) = toc; tL{3} = 'Local PNG save';
 
@@ -369,5 +376,61 @@ D = designfilt('lowpassiir', ...
     'SampleRate', 10000);
 fvtool(D)
 bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
+
+%% LOAD MOVIE FILE
+myPath = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies\2017-Jan-30\E1_T58\';
+myFrames = dir([myPath, '*.tif']);
+myMovie = zeros(200, 200, length(myFrames));
+for iFrame = 1:length(myFrames)
+    myMovie(:,:,iFrame) = rgb2gray(imread([myPath, myFrames(iFrame).name]));
+    myMovie(:,:,iFrame) = myMovie(:,:,iFrame)./max(max(myMovie(:,:,iFrame)));
+end
+% implay(myMovie,30)
+%% Estimate motion during movie
+
+deltaFrame = [];
+for iFrame = 2:length(myMovie)
+    deltaFrame(:,:,iFrame) = myMovie(:,:,iFrame) - myMovie(:,:,iFrame-1);
+end
+frameMove = abs(sum(sum(deltaFrame)));
+
+figure(3); plot(squeeze(frameMove)');
+
+%% Plot trace with movie
+
+trialNum = 22;
+
+frameRate = 30;
+
+% Plot voltage
+f = figInfo;
+h = figure(1); clf; hold on;
+f.figDims = [10 550 1850 400];
+if strcmp(bl.trialInfo(1).scaledOutMode, 'V')
+    traceData = bl.scaledOut';
+else
+    traceData = bl.voltage';
+end
+f.title = {[bl.date], ['Voltage traces for trial numbers: ' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end))]};
+f.yLabel = 'Vm (mV)';
+plotTraces(h, bl, f, traceData, [0 0 1], [], []);
+%tightfig; set(gcf, 'Position', figInfo.figDims);
+set(gca,'LooseInset',get(gca,'TightInset'))
+ln = line(gca, 'XData', [1/frameRate 1/frameRate], 'YData', ylim(gca), 'color', 'r', 'LineWidth', 1);
+
+figure(4); clf
+frameRate = 30;tic
+for iFrame = 1:length(myFrames)
+    imshow(myMovie(:,:,iFrame),'parent', gca);
+    % Update line xData
+    toc
+    set(ln, 'XData', [iFrame/frameRate iFrame/frameRate]);
+    drawnow()
+    %pause(1/frameRate)
+    
+    tic
+end
+
+
 
 
