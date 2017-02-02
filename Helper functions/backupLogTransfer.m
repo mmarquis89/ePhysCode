@@ -1,6 +1,6 @@
 function backupLogTransfer()
-% Copy any paths that are not from today from "PendingBackup" 
-% to "BackupQueueFile" prior to data backup script running.
+% Copy any paths that are not from today from "PendingBackup" to 
+% "BackupQueueFile", then start the backup script in the background.
 
 transferPaths = {};
 pendingPaths = {};
@@ -25,10 +25,12 @@ fclose('all');
 
 % Append older paths to backupQueueFile
 backupFile = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/BackupQueueFile.txt', 'a');
-fprintf(backupFile, [transferPaths{1}]);
-if length(transferPaths) > 1
-    for iLine = 2:length(transferPaths)
-        fprintf(backupFile, ['\r\n', transferPaths{iLine}]);
+if ~isempty(transferPaths)
+    fprintf(backupFile, [transferPaths{1}]);
+    if length(transferPaths) > 1
+        for iLine = 2:length(transferPaths)
+            fprintf(backupFile, ['\r\n', transferPaths{iLine}]);
+        end
     end
 end
 fclose('all');
@@ -44,5 +46,10 @@ if ~isempty(pendingPaths)
     end
 end
 fclose('all');
+
+% If necessary, start a background process to actually back data up to the server
+if ~isempty(transferPaths)
+    !set PATH=C:\Program Files\Anaconda3\;%PATH%&python "C:\Users\Wilson Lab\Documents\Python\dataBackupScript.py" &
+end
 
 end

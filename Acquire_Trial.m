@@ -149,7 +149,7 @@ function data = Acquire_Trial(acqSettings)
     end
     s.addDigitalChannel('Dev2', 'port0/line29', 'InputOnly');    % Camera strobe input
 
-    % Setup output channels
+    % Set up output channels
     digiOutputChannels = {'port0/line0', ...        % Olfactometer shuttle valve
                       'port0/line8:11', ...         % Olfactometer 2-way iso valves
                       acqSettings.altStimChan, ...  % Alternate stim command
@@ -201,7 +201,19 @@ function data = Acquire_Trial(acqSettings)
     catch
         disp('Warning: camera not recording!')
     end
-
+    
+    % Convert images to video file
+    myFiles = dir([savePath, '*.tif']);
+    myFrames = {myFiles.name}';
+    outputVid = VideoWriter([savePath, 'E', num2str(acqSettings.expNum), '_T', num2str(n), '.avi']);
+    outputVid.FrameRate = acqSettings.frameRate;
+    open(outputVid)
+    for iFrame = 1:length(myFrames)
+        img = imread([savePath, myFrames{iFrame}]);
+        writeVideo(outputVid, img);
+    end
+    close(outputVid)
+    
   
 %% PLOT FIGURES
     
