@@ -1,7 +1,7 @@
 %   getCodeStamp(callingFilePath)
 %   JSB
 %   AVB 2016
-%   MM 2016
+%   MM 2017
 %
 %       To get the stamp string just insert this line into the code that
 %       you want the stamp string of. 
@@ -18,15 +18,17 @@ function stampString = getCodeStamp(callingFilePath)
 %     repDir = char(regexp(callingFilePath,'(?<=GitHub\\)\w*','match'));
 %     repPathStem = char(regexp(callingFilePath,'.*(?=GitHub)','match'));
 %     repPath = [repPathStem,'GitHub\',repDir];
-    repPath = 'C:\Users\Wilson Lab\Documents\MATLAB\ePhysCode\';
 %     cd(repPath)
 
+    % Hardcoding to only work with MATLAB code repository because mine doesn't have "GitHub" in the path
+    repPath = 'C:\Users\Wilson Lab\Documents\MATLAB\ePhysCode\';
+    
     % Get the current hash
-    [status, shortHash] = system('git rev-parse --short HEAD');
+    [status, shortHash] = system('cd C:\Users\Wilson Lab\Documents\MATLAB\ePhysCode\ & "C:\Users\Wilson Lab\AppData\Local\GitHub\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe" rev-parse --short HEAD');
     shortHash = regexprep(shortHash,'\n','');
     
     % Find out if the repository is current
-    [status, gitStatus] = system('git status');
+    [status, gitStatus] = system('cd C:\Users\Wilson Lab\Documents\MATLAB\ePhysCode\ & "C:\Users\Wilson Lab\AppData\Local\GitHub\PortableGit_f02737a78695063deace08e96d5042710d3e32db\cmd\git.exe" status');
     if isempty(regexp(gitStatus,'working directory clean'))
         % Working directory isn't clean, there are un-committed changes
         currentFlag = '*';

@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Jan-27', 2);
+expData = loadExperiment('2017-Feb-02', 1);
 
 % Start background process to backup all data that is at least a day old
 backupLogTransfer();
@@ -36,7 +36,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [22];
+trialList = [25];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -98,7 +98,7 @@ for iFold = 1 % Just here so I can fold the code below
     figInfo.figDims = [10 550 1850 400];
     f.timeWindow = [];
     f.yLims = [];
-    f.lineWidth = [];
+    f.lineWidth = [1];
     f.cm = winter(bl.nTrials);
     [h,j] = traceOverlayPlot(bl, f);
     legend off
@@ -319,7 +319,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Jan_30_Light_Stim_Trial';
+filename = 'Jan_27_Light_Stim_Trial_Zoom';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -397,6 +397,17 @@ if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E
     % Save data to disk for future use
     save(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat']), 'allMovies');
     save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat']), 'allMovies');
+
+    % Write movie to an .avi file
+    myVidWriter = VideoWriter(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
+    myVidWriter.FrameRate = expData.expInfo(1).acqSettings.frameRate;
+    open(myVidWriter)
+    for iFrame = 1:size(myMovie,3) 
+        currFrame = myMovie(:,:,iFrame);
+        writeVideo(myVidWriter, currFrame);
+    end
+    close(myVidWriter)
+    
 else
     load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat']));
 end
@@ -434,14 +445,18 @@ if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E
     
     % Save data to disk for future use
     save(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
-    save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+    try
+        save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+    catch
+        disp('Warning: server backup folder does not exist. Skipping server backup save.')
+    end
 else
     load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
 end
 
 %% CREATE COMBINED PLOTTING VIDEOS
 
-frameRate = 30;
+frameRate = expData.expInfo(1).acqSettings.frameRate;
 for iTrial = 1:length(expData.expInfo);
 
     parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
@@ -502,7 +517,7 @@ for iTrial = 1:length(expData.expInfo);
         axes('Units', 'Pixels', 'Position', [425 20 1330 300])
         hold on
         frameTimes = (1:1:length(allFlow{iTrial}))./ frameRate;
-        ylim([0, max(cellfun(@max, allFlow))]);
+        ylim([0, max(cellfun(@max, allFlow(2:end)))]);
         plot(frameTimes(2:end), allFlow{iTrial}(2:end))
         plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()],'LineWidth', 1, 'color', 'r')
         set(gca,'ytick',[])
@@ -520,7 +535,7 @@ end
 
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
 strDate = expData.expInfo(1).date;
-frameRate = 30;
+frameRate = expData.expInfo(1).acqSettings.frameRate;
 nTrials = length(expData.expInfo);
 
 % Create videowriter 
@@ -528,12 +543,10 @@ myVidWriter = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.exp
 myVidWriter.FrameRate = frameRate;
 open(myVidWriter)
 
-for iTrial = 1:nTrials
+for iTrial = 2:nTrials
     
     trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
     disp(trialStr)
-    toc
-    tic
     
     % Load movie for the current trial
     myMovie = {};
