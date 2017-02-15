@@ -57,7 +57,9 @@ elseif scaledOutMode >= 3.5 && scaledOutMode < 7
 end
 
 % Record camera strobe data
-data(n).cameraStrobe = rawAcqData(:,7);
+if size(rawAcqData,2) > 6
+    data(n).cameraStrobe = rawAcqData(:,7);
+end
 
 % Save recorded data
 scaledOut = (rawAcqData(:,1)/data(n).variableGain)*1000; % mV or pA

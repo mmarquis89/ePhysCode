@@ -6,6 +6,7 @@ function output = getTrials(expData, trialNums)
         output.data.tenVm(:,iTrial) = expData.trialData(trialNums(iTrial)).tenVm;
         output.data.scaledOut(:,iTrial) = expData.trialData(trialNums(iTrial)).scaledOut;
         output.trialInfo(iTrial) = expData.expInfo(trialNums(iTrial));
+        output.trialInfo(iTrial).Rpipette = pipetteResistanceCalc(expData.trialData(1).scaledOut);
     end
     
 end

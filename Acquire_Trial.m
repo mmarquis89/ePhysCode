@@ -251,7 +251,7 @@ function data = Acquire_Trial(acqSettings)
     set(gcf,'Position',[10 50 1850 400],'Color',[1 1 1]);
     set(gca,'LooseInset',get(gca,'TightInset'))
     if strcmp(data(n).scaledOutMode, 'V')
-        plot(time(.05*sampRate:end), smooth(current(.05*sampRate:end), 1000)); 
+        plot(time(.05*sampRate:end), current(.05*sampRate:end)); 
         ylabel('Im (pA)');
     elseif strcmp(data(n).scaledOutMode, 'I')
         plot(time(.05*sampRate:end), tenVm(.05*sampRate:end));

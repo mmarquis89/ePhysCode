@@ -1,7 +1,7 @@
 
 
 %% ACQUIRE DENOISING TRACE
-traceDuration = 10; % Time to acquire in seconds
+traceDuration = 5; % Time to acquire in seconds
 
 
 for iTrial = 1                 

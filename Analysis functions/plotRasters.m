@@ -45,7 +45,7 @@ plotSpikeRaster(spikeTimes, 'XLimForCell', [tStart, tStop], 'PlotType', 'Vertlin
 xlim([tStart, tStop]);
 
 % Plot annotation lines
-yLims = ylim
+yLims = ylim;
 for iLine = 1:length(annotLines)
     if min(annotLines{iLine}) >= tStart && max(annotLines{iLine}) <= tStop
         if length(annotLines{iLine}) == 1

@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Feb-02', 1);
+expData = loadExperiment('2017-Feb-13', 2);
 
 % Start background process to backup all data that is at least a day old
 backupLogTransfer();
@@ -36,69 +36,19 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [25];
+trialList = [1 2];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
+bl = makeBl(block, trialList);  % Reformat into more usable structure
 for iFold = 1 % Just here so I can fold the code below
-    
-    % Create global variables
-    bl.trialInfo = block.trialInfo;
-    bl.date = block.trialInfo(1).date;
-    bl.trialList = trialList;
-    bl.nTrials = length(block.trialInfo);                                                             % Number of trials in block
-    bl.sampRate = block.trialInfo(1).sampratein;                                                      % Sampling rate
-    bl.sampleLength = 1/bl.sampRate;                                                                  % Sample duration
-    bl.time = bl.sampleLength:bl.sampleLength:bl.sampleLength*length(block.data.scaledOut);           % Time in seconds of each sample
-    bl.odors = {block.trialInfo.odor};
-    bl.Rpipette = pipetteResistanceCalc(expData.trialData(1).scaledOut)
-    bl.trialDuration = block.trialInfo(1).trialduration;
-    
-    % Maintain backwards-compatibility with older experiments that contained pinch valve timing info
-    if length(bl.trialDuration) == 4
-        bl.trialDuration = [sum(bl.trialDuration(1:2)), bl.trialDuration(3), bl.trialDuration(4)];
-    end
-    
-    % This stuff only applies if an odor was presented
-    if length(bl.trialDuration) > 1
-        % Save valve timing
-        bl.stimOnTime = block.trialInfo(1).trialduration(1);                                              % Pre-stim time (sec)
-        bl.stimLength = block.trialInfo(1).trialduration(2);                                               % Stim duration
-    else
-        bl.vHolds = [];
-        bl.stimOnTime = [];
-        bl.stimLength = [];
-    end
-    
-    % To maintain backwards-compatability with older data
-    if isfield(block.trialInfo, 'altStimDuration')
-        stimCell = {block.trialInfo.altStimDuration};
-    else
-        stimCell = {block.trialInfo.iontoDuration};
-        stimCell = stimCell(~cellfun(@isempty, stimCell));
-    end
-    
-    % If non-odor stimulus was used, save the timing info
-    bl.altStimDuration = stimCell{1};
-    if ~isempty(bl.altStimDuration)
-        bl.altStimStartTime = bl.altStimDuration(1);
-        bl.altStimLength = bl.altStimDuration(2);
-    else
-        bl.altStimStartTime = [];
-        bl.altStimLength = [];
-    end
-    
-    % Save recorded data
-    bl.voltage = block.data.tenVm;             % 2 - 10 Vm voltage traces
-    bl.current = block.data.current;             % 1 - Preamp-filtered current
-    bl.scaledOut = block.data.scaledOut;           % 3 - Scaled Output
-    
+       
     % PLOT EACH TRIAL VOLTAGE AND CURRENT
     f = figInfo;
-    figInfo.figDims = [10 550 1850 400];
+    f.figDims = [10 550 1850 400];
     f.timeWindow = [];
     f.yLims = [];
-    f.lineWidth = [1];
+    f.lineWidth = [];
     f.cm = winter(bl.nTrials);
     [h,j] = traceOverlayPlot(bl, f);
     legend off
@@ -117,10 +67,10 @@ for iFold = 1 % Just here so I can fold the code below
     % legend({'Baseline', 'First Ejection', 'Last Ejection'})
 end
 
-%% Calculate seal resistance
+%% Estimate seal resistance
 bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage)
 
-%% Calculate access resistance
+%% Estimate access resistance
 bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate)
 
 %% BASIC TRACE PLOTTING
@@ -188,8 +138,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [7 13];
-f.yLims = [-50 -30];
+f.timeWindow = [7 14];
+f.yLims = [-50 -35];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -263,7 +213,7 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = [3 3 2 2]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = [2 2 2 2]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
 spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
 bl.spikes = spikes;                     % Save to data structure
@@ -311,7 +261,7 @@ f = figInfo;
 f.timeWindow = [6 16];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*8;
+nBins = (diff(f.timeWindow)+1)*2;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -319,7 +269,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Jan_27_Light_Stim_Trial_Zoom';
+filename = 'Feb_02_Trial_Averaged_Voltage';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -372,6 +322,214 @@ D = designfilt('lowpassiir', ...
 fvtool(D)
 bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
 
+%% CALCULATE OR LOAD MEAN OPTICAL FLOW
+
+nTrials = length(expData.expInfo);
+strDate = expData.expInfo(1).date;
+parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
+allFlow = cell(nTrials, 1);
+if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat'])))
+    for iTrial = 1:nTrials
+        trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
+        disp(trialStr)
+        
+        if ~isempty(dir(fullfile(parentDir, strDate, trialStr, '*tif*'))) % Check to make sure is some video for this trial
+            
+            % Load movie for the current trial
+            myMovie = [];
+            myVid = VideoReader(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
+            while hasFrame(myVid)
+                currFrame = readFrame(myVid);
+                myMovie(:,:,end+1) = rgb2gray(currFrame);
+            end
+            myMovie = uint8(myMovie(:,:,2:end)); % Adds a black first frame for some reason, so drop that
+            
+            % Calculate mean optical flow magnitude across frames for each trial
+            opticFlow = opticalFlowFarneback;
+            currFlow = []; flowMag = zeros(size(myMovie, 3),1);
+            for iFrame = 1:size(myMovie, 3)
+                currFlow = estimateFlow(opticFlow, myMovie(:,:,iFrame));
+                flowMag(iFrame) = mean(mean(currFlow.Magnitude));
+            end
+            allFlow{iTrial} = flowMag;
+        end
+    end
+    
+    % Save data to disk for future use
+    save(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+    try
+        save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+    catch
+        disp('Warning: server backup folder does not exist. Skipping server backup save.')
+    end
+else
+    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
+end
+
+%% CREATE COMBINED PLOTTING VIDEOS
+
+frameRate = expData.expInfo(1).acqSettings.frameRate;
+for iTrial = 1:length(expData.expInfo);
+        
+    parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
+    strDate = expData.expInfo(1).date;
+    trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
+    disp(trialStr)
+    
+    if ~isempty(dir(fullfile(parentDir, strDate, trialStr, '*tif*'))) % Check to make sure is some video for this trial
+        
+        % Load movie for the current trial
+        myMovie = [];
+        myVid = VideoReader(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
+        while hasFrame(myVid)
+            currFrame = readFrame(myVid);
+            myMovie(:,:,end+1) = rgb2gray(currFrame);
+        end
+        myMovie = uint8(myMovie(:,:,2:end)); % Adds a black first frame for some reason, so drop that
+        
+        % Load trial data
+        currVm = expData.trialData(iTrial).scaledOut;
+        trialDuration = sum(expData.expInfo(iTrial).trialduration);
+        
+        % Load optic flow data
+        load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
+        
+        % Create save directory and open video writer
+        if ~isdir(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']))
+            mkdir(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']));
+        end
+        myVid = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'], [trialStr, '_With_Plots.avi']));
+        myVid.FrameRate = frameRate;
+        open(myVid)
+        
+        % Make temporary block structure to get plotting data from
+        blTemp = makeBl(getTrials(expData, iTrial), iTrial);
+        if ~isempty(blTemp.odors{1})
+            annotLines = {[blTemp.stimOnTime, blTemp.stimOnTime+blTemp.stimLength]};
+        else
+            annotLines = {};
+        end
+        
+        % Create and save each frame
+        for iFrame = 1:size(myMovie, 3)
+            
+            currFrame = myMovie(:,:,iFrame);
+            
+            % Create figure
+            h = figure(10); clf
+            set(h, 'Position', [50 100 1800 700])
+            
+            % Movie frame plot
+            axes('Units', 'Pixels', 'Position', [50 225 300 300])
+            imshow(currFrame)
+            axis image
+            axis off
+            if ~isempty(annotLines)
+                title({strrep(blTemp.odors{1}, '_', '\_'), '',['Trial Number = ', num2str(iTrial)], '',['Frame = ', num2str(iFrame), '          Time = ', sprintf('%06.3f',(iFrame/frameRate))], ''});
+            else
+                title({['Trial Number = ', num2str(iTrial)], '',['Frame = ', num2str(iFrame), '          Time = ', sprintf('%06.3f',(iFrame/frameRate))], ''});
+            end
+            
+            % Vm plot
+            ax = axes('Units', 'Pixels', 'Position', [425 380 1330 300]);
+            hold on
+            fTemp = figInfo;
+            plotTraces(ax, blTemp, fTemp, currVm', [0 0 1], annotLines, [0 0 0])         
+%             t = (1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein)*length(currVm);
+%             plot(t, currVm)
+            plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()], 'LineWidth', 1, 'color', 'r')
+            xlabel('Time (sec)');
+            ylabel('Vm (mV)');
+            
+            % Optic flow plot
+            axes('Units', 'Pixels', 'Position', [425 20 1330 300])
+            hold on
+            frameTimes = (1:1:length(allFlow{iTrial}))./ frameRate;
+            ylim([0, 1.5]);
+            plot(frameTimes(2:end), allFlow{iTrial}(2:end))
+            plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()],'LineWidth', 1, 'color', 'r')
+            % set(gca,'ytick',[])
+            set(gca,'xticklabel',[])
+            ylabel('Optic flow (au)')
+            
+            % Write frame to video
+            writeFrame = getframe(h);
+            writeVideo(myVid, writeFrame)
+        end
+        close(myVid)
+    end
+end
+
+%% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
+
+parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
+strDate = expData.expInfo(1).date;
+frameRate = expData.expInfo(1).acqSettings.frameRate;
+nTrials = length(expData.expInfo);
+
+% Create videowriter 
+myVidWriter = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'], ['E', num2str(expData.expInfo(1).expNum),'_AllTrials.avi']));
+myVidWriter.FrameRate = frameRate;
+open(myVidWriter)
+
+for iTrial = 1:nTrials
+    
+    trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
+    disp(trialStr)
+    
+    if ~isempty(dir(fullfile(parentDir, strDate, trialStr, '*tif*'))) % Check to make sure is some video for this trial
+        
+        % Load movie for the current trial
+        myMovie = {};
+        myVid = VideoReader(fullfile(parentDir, strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'] ,[trialStr '_With_Plots.avi']));
+        while hasFrame(myVid)
+            currFrame = readFrame(myVid);
+            myMovie(end+1) = {uint8(currFrame)};
+        end
+        
+        % Add frames to movie
+        for iFrame = 1:length(myMovie)
+            writeVideo(myVidWriter, myMovie{iFrame});
+        end
+    end
+end
+close(myVidWriter)
+clear('myMovie')
+
+%% PLOT SPIKE RATE VS. OPTIC FLOW
+
+% Separate out optic flow data from the current block
+blFlow = allFlow(trialList);
+data = [];
+concatFlow = [];
+for iTrial = 1:bl.nTrials
+    currSpikes = bl.spikes(iTrial).locs;
+    currFlow = blFlow{iTrial};
+    
+    % Convert spikes to seconds and calculate time points for optic flow
+    secSpikes = currSpikes ./ bl.sampRate;
+    secFlow = (1:length(currFlow)) * (1/bl.frameRate);
+    
+    figure(iTrial); clf; hold on
+    set(gcf, 'Position', [100 100 1500 400])
+    nBins = sum(bl.trialDuration)*2;
+    binLength = sum(bl.trialDuration)./nBins;
+    
+    yyaxis left
+    h = histogram(secSpikes, nBins);
+    data = [data, h.Values];
+    for iBin = 1:nBins
+        binnedFlow(iBin) = mean(currFlow((secFlow >=(iBin - 1)*binLength)+(secFlow < iBin*binLength)==2));
+    end
+    concatFlow = [concatFlow, binnedFlow]; 
+    yyaxis right
+    plot([0:binLength:sum(bl.trialDuration)-binLength]+binLength/2, binnedFlow); ylim([0 1.5]);
+end
+
+    
+figure(1); clf;
+plot(concatFlow, data, 'o');
+
 %% CREATE OR LOAD MOVIE FILES
 
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
@@ -413,154 +571,3 @@ else
 end
 
 
-%% CALCULATE OR LOAD MEAN OPTICAL FLOW
-
-nTrials = length(expData.expInfo);
-strDate = expData.expInfo(1).date;
-parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
-allFlow = cell(nTrials, 1);
-if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat'])))
-    for iTrial = 1:nTrials
-        trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
-        disp(['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)])
-        
-        % Load movie for the current trial
-        myMovie = [];
-        myVid = VideoReader(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
-        while hasFrame(myVid)
-            currFrame = readFrame(myVid);
-            myMovie(:,:,end+1) = rgb2gray(currFrame);%double(rgb2gray(currFrame))./double(max(max(rgb2gray(currFrame))));
-        end
-        myMovie = uint8(myMovie(:,:,2:end)); % Adds a black first frame for some reason, so drop that
-        
-        % Calculate mean optical flow magnitude across frames for each trial
-        opticFlow = opticalFlowFarneback;
-        currFlow = []; flowMag = zeros(size(myMovie, 3),1);%size(allMovies{iTrial},3), 1);
-        for iFrame = 1:size(myMovie, 3)%1:size(allMovies{iTrial}, 3)
-            currFlow = estimateFlow(opticFlow, myMovie(:,:,iFrame));%allMovies{iTrial}(:,:,iFrame));
-            flowMag(iFrame) = mean(mean(currFlow.Magnitude));
-        end
-        allFlow{iTrial} = flowMag;
-    end
-    
-    % Save data to disk for future use
-    save(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
-    try
-        save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
-    catch
-        disp('Warning: server backup folder does not exist. Skipping server backup save.')
-    end
-else
-    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
-end
-
-%% CREATE COMBINED PLOTTING VIDEOS
-
-frameRate = expData.expInfo(1).acqSettings.frameRate;
-for iTrial = 1:length(expData.expInfo);
-
-    parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
-    strDate = expData.expInfo(1).date;
-    trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
-    disp(trialStr)
-    
-    % Load movie for the current trial
-    myMovie = [];
-    myVid = VideoReader(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
-    while hasFrame(myVid)
-        currFrame = readFrame(myVid);
-        myMovie(:,:,end+1) = rgb2gray(currFrame);
-    end
-    myMovie = uint8(myMovie(:,:,2:end)); % Adds a black first frame for some reason, so drop that
-    
-    % Load trial data
-    currVm = expData.trialData(iTrial).scaledOut;
-    trialDuration = sum(expData.expInfo(iTrial).trialduration);
-    
-    % Load optic flow data
-    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
-    
-    % Create save directory and open video writer
-    if ~isdir(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']))
-        mkdir(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']));
-    end
-    myVid = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'], [trialStr, '_With_Plots.avi']));
-    myVid.FrameRate = frameRate;
-    open(myVid)
-    
-    % Create and save each frame
-    for iFrame = 1:size(myMovie, 3)
-        
-        currFrame = myMovie(:,:,iFrame);
-        
-        % Create figure
-        h = figure(10); clf
-        set(h, 'Position', [50 100 1800 700])
-        
-        % Movie frame plot
-        axes('Units', 'Pixels', 'Position', [50 225 300 300])
-        imshow(currFrame)
-        axis image
-        axis off
-        title({['Trial Number = ', num2str(iTrial)], '',['Frame = ', num2str(iFrame), '          Time = ', num2str((iFrame/frameRate))], ''});
-        
-        % Vm plot
-        axes('Units', 'Pixels', 'Position', [425 380 1330 300])
-        hold on
-        t = (1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein)*length(currVm);
-        plot(t, currVm)
-        plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()], 'LineWidth', 1, 'color', 'r')
-        xlabel('Time (sec)');
-        ylabel('Vm (mV)');
-        
-        % Optic flow plot
-        axes('Units', 'Pixels', 'Position', [425 20 1330 300])
-        hold on
-        frameTimes = (1:1:length(allFlow{iTrial}))./ frameRate;
-        ylim([0, max(cellfun(@max, allFlow(2:end)))]);
-        plot(frameTimes(2:end), allFlow{iTrial}(2:end))
-        plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()],'LineWidth', 1, 'color', 'r')
-        set(gca,'ytick',[])
-        set(gca,'xticklabel',[])
-        ylabel('Optic flow (au)')
-        
-        % Write frame to video
-        writeFrame = getframe(h);
-        writeVideo(myVid, writeFrame)  
-    end
-    close(myVid)
-end
-
-%% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
-
-parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
-strDate = expData.expInfo(1).date;
-frameRate = expData.expInfo(1).acqSettings.frameRate;
-nTrials = length(expData.expInfo);
-
-% Create videowriter 
-myVidWriter = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'], ['E', num2str(expData.expInfo(1).expNum),'_AllTrials.avi']));
-myVidWriter.FrameRate = frameRate;
-open(myVidWriter)
-
-for iTrial = 2:nTrials
-    
-    trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
-    disp(trialStr)
-    
-    % Load movie for the current trial
-    myMovie = {};
-    myVid = VideoReader(fullfile(parentDir, strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'] ,[trialStr '_With_Plots.avi']));
-    while hasFrame(myVid)
-        currFrame = readFrame(myVid);
-        myMovie(end+1) = {uint8(currFrame)};
-    end
-    
-    % Add frames to movie
-    for iFrame = 1:length(myMovie)
-        writeVideo(myVidWriter, myMovie{iFrame});
-    end
-     
-end
-close(myVidWriter)
-clear('myMovie')

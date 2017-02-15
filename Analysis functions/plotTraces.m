@@ -1,8 +1,8 @@
-function [h] = plotTraces(h, bl, figInfo, traceData, traceColors, annotLines, annotColors)
+function [plotHandle] = plotTraces(plotHandle, bl, figInfo, traceData, traceColors, annotLines, annotColors)
 % =============================================================================================================
-% Creates a new figure, formats it using the figInfo object and block structure, and plots one 
+% Takes a figure or axes handle, formats it using the figInfo object and block structure, and plots one 
 % or more traces and/or vertical marker lines
-% h = handle of the figure to plot in
+% plotHandle = handle of the figure or axes to plot in
 % figInfo is an object with (optional) properties: 
     % figDims: position and size of figure window: [X, Y, width, height]
     % xLabel:  text for x-axis label
@@ -14,7 +14,7 @@ function [h] = plotTraces(h, bl, figInfo, traceData, traceColors, annotLines, an
     % figLegend: cell array of legend text ([] to skip an object)
 % traceData: array, each row is a trace to be plotted
 % traceColors: nx3 array, each row is the color for one trace
-% annotLines: cell array with of the xLoc(s) for each stimulus marker line
+% annotLines: cell array with the xLoc(s) for each stimulus marker line
     % Use a single number to plot a vertical line at the xLoc. 
     % Use a 2-number vector for a horizontal line above the plot between the pair of xLocs.
 % annotLineType: character vector with one letter for each xLoc in annotLines
@@ -41,13 +41,18 @@ else
     tStop = sum(bl.trialDuration);
 end
 
-% Activate figure and format figure/axes
-figure(h);
-if ~isempty(figInfo.figDims)
-    set(gcf,'Position',figInfo.figDims);
+% Activate and format figure/axes
+if strcmp(plotHandle.Type, 'figure')
+    figure(plotHandle);
+    if ~isempty(figInfo.figDims)
+        set(gcf,'Position',figInfo.figDims);
+    end
+    set(gcf, 'Color', [1 1 1]);
+else
+    axes(plotHandle)
 end
-set(gcf, 'Color', [1 1 1]);
 box off
+
 
 % Determine plotting line width
 if ~isempty(figInfo.lineWidth)

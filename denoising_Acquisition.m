@@ -14,8 +14,12 @@ function data = denoising_Acquisition(expNumber,trialDuration)
   
 %% SETUP TRIAL PARAMETERS
     
+    aS = acqSettings;
+    aS.expNum = expNumber;
+    aS.trialDuration = trialDuration;
+
     % Run initial setup function
-    [data, n] = acquisitionSetup(expNumber,trialDuration, [], [], [], [], [], []);
+    [data, n] = acquisitionSetup(aS);
     disp(num2str(n))
     sampRate = data(n).sampratein;
     data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
