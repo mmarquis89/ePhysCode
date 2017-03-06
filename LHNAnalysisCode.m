@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Feb-13', 2);
+expData = loadExperiment('2017-Mar-01', 1);
 
 % Start background process to backup all data that is at least a day old
 backupLogTransfer();
@@ -36,7 +36,7 @@ odorTrials = [];
 %     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
 % end
 
-trialList = [1 2];
+trialList = [17:32 34:65];
 % blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
 % trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
@@ -79,20 +79,20 @@ bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate)
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [.01 16];
-f.yLims = [-55 -30];
+f.timeWindow = [4 10];
+f.yLims = [-26  -14];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
 f.title = []; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
 %regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')];
-f.figLegend = {'Control'};
+f.figLegend = {};
 
 traceData = [bl.scaledOut']; % rows are traces
 traceColors = [0,0,1;1,0,0]; % n x 3 RGB array
 
-annotLines = [];%{[bl.stimOnTime, bl.stimOnTime+bl.stimLength]}; % cell array of xLocs for annotation lines
+annotLines = {[bl.stimOnTime, bl.stimOnTime+bl.stimLength]}; % cell array of xLocs for annotation lines
 annotColors = [0,0,0]; % m x 3 RGB array for each annotation line
 
 % Plot traces
@@ -138,8 +138,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [7 14];
-f.yLims = [-50 -35];
+f.timeWindow = [5 10];
+f.yLims = [];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -213,7 +213,7 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = [2 2 2 2]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = [2 2 1 1]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
 spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
 bl.spikes = spikes;                     % Save to data structure
@@ -258,10 +258,10 @@ end
 
 %% PLOT SPIKE RASTERS
 f = figInfo;
-f.timeWindow = [6 16];
+f.timeWindow = [5 10];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*2;
+nBins = (diff(f.timeWindow)+1)*8;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -269,7 +269,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Feb_02_Trial_Averaged_Voltage';
+filename = 'Mar_1_R';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -321,6 +321,30 @@ D = designfilt('lowpassiir', ...
     'SampleRate', 10000);
 fvtool(D)
 bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
+
+%% CREATE MOVIES FROM .TIF FILES
+
+strDate = expData.expInfo(1).date;
+nTrials = length(expData.expInfo);
+        
+for iTrial = 1:nTrials
+    trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];   
+    disp(trialStr)
+    savePath = fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies', strDate, trialStr);
+    currFiles = dir(fullfile(savePath, '*.tif'));
+    
+    if ~isempty(currFiles) && isempty(dir(fullfile(savePath, '*.avi'))) % Make sure there's at least one image file and no .avi file already in this trial's directory
+        currFrames = {currFiles.name}';
+        outputVid = VideoWriter([fullfile(savePath, [trialStr, '.avi'])]);
+        outputVid.FrameRate = expData.expInfo(1).acqSettings.frameRate;
+        open(outputVid)
+        for iFrame = 1:length(currFrames)
+            currImg = imread([savePath, currFrames{iFrame}]);
+            writeVideo(outputVid, currImg);
+        end
+        close(outputVid)
+    end   
+end
 
 %% CALCULATE OR LOAD MEAN OPTICAL FLOW
 
@@ -434,6 +458,8 @@ for iTrial = 1:length(expData.expInfo);
             ax = axes('Units', 'Pixels', 'Position', [425 380 1330 300]);
             hold on
             fTemp = figInfo;
+            yRange = max(currVm) - min(currVm);
+            fTemp.yLims = [min(currVm)-0.1*yRange, max(currVm)+0.2*yRange] 
             plotTraces(ax, blTemp, fTemp, currVm', [0 0 1], annotLines, [0 0 0])         
 %             t = (1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein)*length(currVm);
 %             plot(t, currVm)
@@ -496,12 +522,14 @@ end
 close(myVidWriter)
 clear('myMovie')
 
+
 %% PLOT SPIKE RATE VS. OPTIC FLOW
 
 % Separate out optic flow data from the current block
 blFlow = allFlow(trialList);
 data = [];
 concatFlow = [];
+binnedFlow = [];
 for iTrial = 1:bl.nTrials
     currSpikes = bl.spikes(iTrial).locs;
     currFlow = blFlow{iTrial};
@@ -512,7 +540,7 @@ for iTrial = 1:bl.nTrials
     
     figure(iTrial); clf; hold on
     set(gcf, 'Position', [100 100 1500 400])
-    nBins = sum(bl.trialDuration)*2;
+    nBins = sum(bl.trialDuration)*.5;
     binLength = sum(bl.trialDuration)./nBins;
     
     yyaxis left
@@ -526,48 +554,9 @@ for iTrial = 1:bl.nTrials
     plot([0:binLength:sum(bl.trialDuration)-binLength]+binLength/2, binnedFlow); ylim([0 1.5]);
 end
 
-    
 figure(1); clf;
 plot(concatFlow, data, 'o');
 
-%% CREATE OR LOAD MOVIE FILES
 
-parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
-strDate = expData.expInfo(1).date;
-
-if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat'])))
-    allMovies = cell(1,length(expData.expInfo));
-    for iTrial = 1:length(expData.expInfo)
-        trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
-        disp(trialStr)
-        
-        % Load video
-        myMovie = [];
-        myVid = VideoReader(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
-        while hasFrame(myVid)
-            currFrame = readFrame(myVid);
-            myMovie(:,:,end+1) = rgb2gray(currFrame);%double(rgb2gray(currFrame))./double(max(max(rgb2gray(currFrame))));
-        end
-        myMovie = myMovie(:,:,2:end); % Adds a black first frame for some reason, so drop that
-        allMovies{iTrial} = uint8(myMovie);
-    end
-    
-    % Save data to disk for future use
-    save(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat']), 'allMovies');
-    save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat']), 'allMovies');
-
-    % Write movie to an .avi file
-    myVidWriter = VideoWriter(fullfile(parentDir, strDate, trialStr, [trialStr, '.avi']));
-    myVidWriter.FrameRate = expData.expInfo(1).acqSettings.frameRate;
-    open(myVidWriter)
-    for iFrame = 1:size(myMovie,3) 
-        currFrame = myMovie(:,:,iFrame);
-        writeVideo(myVidWriter, currFrame);
-    end
-    close(myVidWriter)
-    
-else
-    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum), '_Movies.mat']));
-end
 
 

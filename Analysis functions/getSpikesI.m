@@ -26,7 +26,7 @@ for iTrial = 1:bl.nTrials
         for iPeak = 1:length(p)
             % Initial Peak Window
             pkWin = [l(iPeak)-.0001*bl.sampRate:l(iPeak)+.0001*bl.sampRate];
-            pkWin(pkWin>size(normCurrent,1)) = size(normCurrent,1);
+            pkWin(pkWin>size(normCurrent,1)) = size(normCurrent,1); % In case window goes beyond end of trial
             pkWin(pkWin < 1) = 1;
             
             % AHP Window

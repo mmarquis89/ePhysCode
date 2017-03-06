@@ -1,11 +1,11 @@
 
-expNum = 2; 
-trialDuration = [10 1 9];    % [pre-stim, clean valve open, post-stim]
-Istep = [12];
+expNum = 1; 
+trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
+Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors =  {'cVA_e-2', 'GeranylAcetate_e-2', 'ACV_e-3', 'ParaffinOil'};
+odors = {'EthylAcetate_e-6', 'Farnesol_e-2', 'Farnesol_e-3', 'Farnesol_e-4'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -17,14 +17,6 @@ if numel(dList) < 10
 else
     disp('Too many trials for automatic deletion');
 end
-
-
-
-%% ACQUIRE INITIAL PATCHING DATA
-
-aS = acqSettings;
-aS.expNum = expNum;
-initialPatchingAcq(aS);
 
 %% ACQUIRE TRACE
 
@@ -38,7 +30,7 @@ for iFold = 1
     aS.Ihold = Ihold;
 end
 
-Acquire_Trial(aS);
+[~] = Acquire_Trial(aS);
 
 %% RUN ODOR TRIAL(S)
 
@@ -48,7 +40,7 @@ odorList = shuffleTrials(odors(1:4), nReps);
 disp('Shuffle complete')
 
 %Setup odor and valve list manually
-% odorList = odors([1]);
+% odorList = odors([2 3 2 3 2 3 2 3]);
 
 for iFold = 1
     aS = acqSettings;
@@ -70,19 +62,23 @@ for iTrial = 1:nTrials
     aS.odor = odorList{iTrial};
     aS.valveID = valveList(iTrial);
     disp(['iTrial = ', num2str(iTrial), ', Odor = ' odorList{iTrial}])
-    Acquire_Trial(aS);
+    tic
+    [~] = Acquire_Trial(aS);
+    disp(['Time elapsed: ', num2str(toc), ' sec']);
 end 
 disp('End of block');
 
 %% RUN OPTO STIM TRIAL(S)
 
-optoDuration = [8 3 9];
+optoDuration = [5 3 7];
+LEDpower = 10; % 1-100
 
 % Setup trials of a single odor with alternating light stim (opto on second trial)
 valveNum = 3;
 nReps = 1;
 trialOdor = odors{valveNum};
 optoDurationList = repmat({[] ; optoDuration}, nReps, 1);
+setLED(LEDpower); % Set LED to desired power level
 
 for iFold = 1
     aS = acqSettings;
@@ -103,7 +99,7 @@ nTrials = length(optoDurationList);
 for iTrial = 1:nTrials
     aS.altStimDuration = optoDurationList{iTrial};
     aS.odor = trialOdor;
-    as.valveID = valveNum;
+    aS.valveID = valveNum;
     if ~isempty(aS.altStimDuration)
         aS.altStimType = 'opto';
     end
@@ -156,3 +152,9 @@ for iTrial = 1:nReps
    disp(['iTrial = ', num2str(iTrial)])
 end
 disp('End of block');
+
+%% ACQUIRE INITIAL PATCHING DATA
+
+aS = acqSettings;
+aS.expNum = expNum;
+initialPatchingAcq(aS);

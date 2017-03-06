@@ -9,6 +9,7 @@ classdef acqSettings
         trialDuration              % [pre-stim, clean valve open, post-stim] in seconds. If trialDuration is a single integer, a trace of that duration will be acquired.
         altStimDuration            % [pre-stim, stim on, post-stim] in seconds (sum must match trialDuration). Use '[]' if not using alternate stim on this trial. 
         altStimType                % String describing the type of alternative stim being used. Pass '[]' for no alt stim. Valid types are: 'opto', 'ionto', 'eject'
+        altStimParam               % 
         odor                       % Record of odor ID - Use 'EmptyVial', 'ParaffinOil', or the odor name, or '[]' if no stim is delivered
         valveID                    % A number from 1-4 indicating which valve to use if a stimulus is delivered (use '[]' if no stim)
         Istep                      % The size of the current step to use at the beginning of the trial in pA. [] will skip the step.

@@ -82,7 +82,7 @@ for iLine = 1:length(annotLines)
             plot([annotLines{iLine}, annotLines{iLine}], yLims, 'color', annotColors(iLine, :), 'linewidth', 2);
         elseif length(annotLines{iLine}) == 2
             yLen = abs(yLims(1)-yLims(2));
-            rectangle('Position', [annotLines{iLine}(1), (yLims(2)-0.01*yLen)-0.05*yLen, diff(annotLines{iLine}), 0.025*yLen], ...
+            rectangle('Position', [annotLines{iLine}(1), (yLims(2)-0.08*yLen), diff(annotLines{iLine}), 0.025*yLen], ...
                 'FaceColor', annotColors(iLine, :), 'EdgeColor', annotColors(iLine, :))
         end
     end

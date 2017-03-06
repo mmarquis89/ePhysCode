@@ -20,7 +20,7 @@ function data = Acquire_Trial(acqSettings)
     % sampRate (default = 20000): input and output sampling rate for the trial. 
     % stepStartTime (default = 1): time in seconds from the start of the trial to begin the current test step. 
     % stepLength (default = 1): length of current test step in seconds. 
-    % DAQOffset (default = 4.25): the amount of current the DAQ is injecting when the command is 0. 
+    % DAQOffset (default = 0.7): the amount of current the DAQ is injecting when the command is 0. 
     % altStimChan (default = 'port0/line12'): the name of the output channel on the DAQ for the alternate stimulus. 
     % frameRate (default = 30): The rate (in FPS) at which the behavior camera should acquire images during the trial
         
@@ -28,7 +28,7 @@ function data = Acquire_Trial(acqSettings)
 % ====================================================================================================================
 
 %% SETUP TRIAL PARAMETERS AND STIMULUS DATA
- 
+     
     % Pull variables from settings
     trialDuration = acqSettings.trialDuration;
     altStimDuration = acqSettings. altStimDuration;
@@ -91,12 +91,9 @@ function data = Acquire_Trial(acqSettings)
                 altStimOut(end) = 0;
             case 'opto'
                 % Optogenetic stimulus setup
-                minPulseLen = ceil(.0002 / (1/sampRate));  % TTL pulse must be at least 100 uSec to trigger shutter, use 200 to be safe
                 preOpto = zeros(sampRate * altStimDuration(1), 1);
-                optoStim = zeros(sampRate * altStimDuration(2), 1);
-                optoStim(1:minPulseLen) = 1; % Set trigger pulse at beginning of light stimulus
+                optoStim = ones(sampRate * altStimDuration(2), 1);
                 postOpto = zeros(sampRate * altStimDuration(3), 1);
-                postOpto(1:minPulseLen) = 1; % Set offset trigger pulse after stimulus period
                 altStimOut = [preOpto; optoStim; postOpto];
                 altStimOut(end) = 0;
             case 'eject'
@@ -126,7 +123,7 @@ function data = Acquire_Trial(acqSettings)
     % Set up camera trigger output
     camTrigOut = zeros(sampRate * sum(trialDuration),1);
     triggerInterval = round(sampRate / acqSettings.frameRate);
-    camTrigOut(1:triggerInterval:end) = 1;
+    camTrigOut(1:triggerInterval:end) = 1;    
     
 %% SESSION-BASED ACQUISITION CODE
     
@@ -148,7 +145,7 @@ function data = Acquire_Trial(acqSettings)
         s.Channels(1,iChan).InputType = 'SingleEnded';
     end
     s.addDigitalChannel('Dev2', 'port0/line29', 'InputOnly');    % Camera strobe input
-
+    
     % Set up output channels
     digiOutputChannels = {'port0/line0', ...        % Olfactometer shuttle valve
                       'port0/line8:11', ...         % Olfactometer 2-way iso valves
@@ -167,14 +164,12 @@ function data = Acquire_Trial(acqSettings)
     outputData(:,6) = altStimOut; 
     outputData(:,7) = camTrigOut;
     outputData(:,8) = Icommand;
-    
     % Save all command data and queue for output
     data(n).outputData = outputData;
     s.queueOutputData(outputData);
   
     % Start acquisition
     s.Rate = data(n).samprateout;
-
     rawAcqData = s.startForeground();
 
 %% RUN POST-PROCESSING AND SAVE DATA
@@ -201,20 +196,19 @@ function data = Acquire_Trial(acqSettings)
     catch
         disp('Warning: camera not recording!')
     end
-    
-    % Convert images to video file
-    myFiles = dir([savePath, '*.tif']);
-    myFrames = {myFiles.name}';
-    outputVid = VideoWriter([savePath, 'E', num2str(acqSettings.expNum), '_T', num2str(n), '.avi']);
-    outputVid.FrameRate = acqSettings.frameRate;
-    open(outputVid)
-    for iFrame = 1:length(myFrames)
-        img = imread([savePath, myFrames{iFrame}]);
-        writeVideo(outputVid, img);
-    end
-    close(outputVid)
-    
-  
+
+%     % Convert images to video file
+%     myFiles = dir([savePath, '*.tif']);
+%     myFrames = {myFiles.name}';
+%     outputVid = VideoWriter([savePath, 'E', num2str(acqSettings.expNum), '_T', num2str(n), '.avi']);
+%     outputVid.FrameRate = acqSettings.frameRate;
+%     open(outputVid)
+%     for iFrame = 1:length(myFrames)
+%         img = imread([savePath, myFrames{iFrame}]);
+%         writeVideo(outputVid, img);
+%     end
+%     close(outputVid)
+
 %% PLOT FIGURES
     
     % Make time vector for x-axis
