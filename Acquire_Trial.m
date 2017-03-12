@@ -180,6 +180,15 @@ function [data] = Acquire_Trial(acqSettings)
     % Move camera files from temp directory to local and network folders
     savePath = ['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/E', num2str(acqSettings.expNum), '_T', num2str(trialNum), '/'];
     
+    % Check to make sure the camera saved the expected number of pictures
+    framesRequested = sum(data.outputData(:,7));
+    framesSaved = length(dir([tempDir, '.tif*']));
+    if framesRequested ~= framesSaved && framesSaved > 0
+       disp('Warning! Number of video frames saved does not match number of frames requested!')
+       errorMsg = ['Requested: ', num2str(framesRequested), '  Saved: ', num2str(framesSaved)];
+       save([savePath,'frameCountError.mat'], errorMsg);
+    end
+    
     % If necessary, add directory path to log file for later backup
     if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/'])
         pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
@@ -198,18 +207,6 @@ function [data] = Acquire_Trial(acqSettings)
     catch
         disp('Warning: camera not recording!')
     end
-
-%     % Convert images to video file
-%     myFiles = dir([savePath, '*.tif']);
-%     myFrames = {myFiles.name}';
-%     outputVid = VideoWriter([savePath, 'E', num2str(acqSettings.expNum), '_T', num2str(n), '.avi']);
-%     outputVid.FrameRate = acqSettings.frameRate;
-%     open(outputVid)
-%     for iFrame = 1:length(myFrames)
-%         img = imread([savePath, myFrames{iFrame}]);
-%         writeVideo(outputVid, img);
-%     end
-%     close(outputVid)
 
 %% PLOT FIGURES
     

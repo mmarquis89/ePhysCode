@@ -1,11 +1,11 @@
 
-expNum = 1; 
+expNum = 2; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
-Istep = [];
-Ihold = 0;
+Istep = [-2];
+Ihold = -1;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'cVA_e-2', 'GeranylAcetate_e-2', 'ACV_e-3', 'ParaffinOil'};
+odors = {'EthylAcetate_e-7', 'PentylAcetate_e-6 ', 'Farnesol_e-2 ', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
