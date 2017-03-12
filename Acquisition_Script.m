@@ -5,7 +5,7 @@ Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'EthylAcetate_e-6', 'Farnesol_e-2', 'Farnesol_e-3', 'Farnesol_e-4'};
+odors = {'cVA_e-2', 'GeranylAcetate_e-2', 'ACV_e-3', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -29,8 +29,9 @@ for iFold = 1
     aS.Istep = Istep;
     aS.Ihold = Ihold;
 end
-
+tic
 [~] = Acquire_Trial(aS);
+disp(['Total time elapsed: ', num2str(toc), ' sec']);
 
 %% RUN ODOR TRIAL(S)
 
@@ -64,7 +65,7 @@ for iTrial = 1:nTrials
     disp(['iTrial = ', num2str(iTrial), ', Odor = ' odorList{iTrial}])
     tic
     [~] = Acquire_Trial(aS);
-    disp(['Time elapsed: ', num2str(toc), ' sec']);
+    disp(['Total time elapsed: ', num2str(toc), ' sec']);
 end 
 disp('End of block');
 

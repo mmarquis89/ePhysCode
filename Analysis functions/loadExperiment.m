@@ -1,11 +1,39 @@
 function output = loadExperiment(expDate, expNumber)
+%===========================================================================================================================
+% Loads all the raw recording data and metadata from a given experiment and returns a structure containing all data for 
+% further analysis. This function is compatible with either the old or new ways of storing metadata (i.e. as a single struct
+% for the entire experiment vs. as individual structs for each trial). The final experiment using the old metadata storage
+% format is from 2017-Mar-09.
+    % expDate: the date of the experiment in 'yyyy-MMM-dd' format
+    % expNumber: the number of the experiment
+%===========================================================================================================================
     
-    % Load the master file
-    load(['Data/', expDate,'/WCwaveform_',expDate,'_E',num2str(expNumber),'.mat']','data');
+    % Check date to maintain backwards-compatibility with older data
+    formattedDate = datetime(expDate, 'InputFormat', 'yyyy-MMM-dd')
     
-    output.expInfo = data;       % Experiment info
+    if formattedDate < datetime('2017-Mar-12')    
+  	%  ***Metadata is already stored in a single struct for all trials***
+        
+        % Load data and get total number of trials
+        load(['Data/', expDate,'/WCwaveform_',expDate,'_E',num2str(expNumber), '.mat'],'data');
+        nTrials = length(data)
+        
+    else
+    %  ***Metadata is stored in individual structs for each trial***
+  
+        % Get total number of trials
+        D = dir(['Data/', expDate,'/WCwaveform_', expDate,'_E',num2str(expNumber),'*.mat']);
+        nTrials = length(D); 
+        
+        % Concatenate metadata for all trials into single structure
+        for iTrial = 1:nTrials       
+            load(['Data/', expDate,'/WCwaveform_',expDate,'_E',num2str(expNumber),'_T', num2str(iTrial), '.mat'],'data');
+            output.expInfo(iTrial) = data; 
+        end
+    end
     
-    for iTrial = 1:length(data)     % Add the raw data from each trial
+    % Add the raw data from each trial
+    for iTrial = 1:nTrials
         load(['Data/', expDate,'/Raw_WCwaveform_',expDate,'_E',num2str(expNumber), '_', num2str(iTrial),'.mat']');  
         output.trialData(iTrial).current = current;
         output.trialData(iTrial).tenVm = tenVm;

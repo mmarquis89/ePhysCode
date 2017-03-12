@@ -1,4 +1,4 @@
-function [data, n] = acquisitionSetup(acqSettings)
+function [data, trialNum] = acquisitionSetup(acqSettings)
 % ===========================================================================================================================
 % The purpose of this function is to consolidate all the setup steps that are common across different types of acquisition 
 % functions, to minimize the risk of inconsistencies when I change one function.
@@ -15,55 +15,51 @@ function [data, n] = acquisitionSetup(acqSettings)
         fclose('all');
     end
 
-%% CREATE DATA STRUCTURE AS NEEDED
-    D = dir(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'.mat']);
-    if isempty(D)           
-        % If no saved data exists then this is the first trial
-        n = 1 ;
-    else
-        % Load current data file
-        load(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'.mat']','data');
-        n = length(data)+1;
-    end
+%% DETERMINE TRIAL NUMBER
+
+    D = dir(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'*.mat']);
+    trialNum = length(D) + 1;
 
 %% SAVE CURRENT GIT HASH
 
-    data(n).gitHash = getCodeStamp(mfilename('fullpath'));
+    data.gitHash = getCodeStamp(mfilename('fullpath'));
 
 %% RECORD TRIAL PARAMETERS
  
-    data(n).odor = acqSettings.odor;
-    data(n).trialduration = acqSettings.trialDuration;      % Trial duration in sec [pre-stim, valves open, post-stim]
-    data(n).altStimDuration = acqSettings.altStimDuration;  % Non-odor stimulus (e.g. iontophoresis, LED illumination) duration in sec [pre-stim, stim on, post-stim]
-    data(n).altStimType = acqSettings.altStimType;          % String describing the type of alternative stim being used (e.g. 'opto', 'ionto', 'eject', etc.)
-    data(n).valveID = acqSettings.valveID;
-    data(n).shutterTelegraph = [];                          % Output from shutter driver reporting physical location of shutter
-    data(n).cameraStrobe = [];                              % Input from the behavior camera reporting exact integration times for each frame
-    
+    data.odor = acqSettings.odor;
+    data.trialduration = acqSettings.trialDuration;      % Trial duration in sec [pre-stim, valves open, post-stim]
+    data.altStimDuration = acqSettings.altStimDuration;  % Non-odor stimulus (e.g. iontophoresis, LED illumination) duration in sec [pre-stim, stim on, post-stim]
+    data.altStimType = acqSettings.altStimType;          % String describing the type of alternative stim being used (e.g. 'opto', 'ionto', 'eject', etc.)
+    data.valveID = acqSettings.valveID;
+    data.shutterTelegraph = [];                          % Output from shutter driver reporting physical location of shutter
+    data.cameraStrobe = [];                              % Input from the behavior camera reporting exact integration times for each frame
+   
   % Current command parameters
-    data(n).Istep = acqSettings.Istep;
-    data(n).Ihold = acqSettings.Ihold;
-    data(n).stepStartTime = acqSettings.stepStartTime; 
-    data(n).stepLength = acqSettings.stepLength;
-    data(n).DAQOffset = acqSettings.DAQOffset;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
+    data.Istep = acqSettings.Istep;
+    data.Ihold = acqSettings.Ihold;
+    data.stepStartTime = acqSettings.stepStartTime; 
+    data.stepLength = acqSettings.stepLength;
+    data.DAQOffset = acqSettings.DAQOffset;  % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this.
     
   % Experiment information
-    data(n).date = strDate;                     % experiment date
-    data(n).expNum = acqSettings.expNum;        % experiment number
-    data(n).trial = n;                          % trial number
-    data(n).sampleTime = clock;
+    data.trial = trialNum;
+    data.date = strDate;                     % experiment date
+    data.expNum = acqSettings.expNum;        % experiment number
+    data.sampleTime = clock;
     
   % Sampling rates
-    data(n).sampratein = acqSettings.sampRate;             % input sample rate
-    data(n).samprateout = acqSettings.sampRate;            % output sample rate becomes input rate as well when both input and output present
+    data.sampratein = acqSettings.sampRate;             % input sample rate
+    data.samprateout = acqSettings.sampRate;            % output sample rate becomes input rate as well when both input and output present
         
   % Amplifier gains to be read or used
-    data(n).variableGain = NaN;                % Amplifier 1 alpha
-    data(n).variableOffset1 = NaN;             % Amplifier 1 variable output offset. Determined empirically.
-    data(n).ImGain = 10;
-    data(n).VmGain = 100;
-    data(n).ImOffset1 = 0;  
+    data.variableGain = NaN;                % Amplifier 1 alpha
+    data.variableOffset1 = NaN;             % Amplifier 1 variable output offset. Determined empirically.
+    data.ImGain = 10;
+    data.VmGain = 100;
+    data.ImOffset1 = 0;  
     
   % Save acqSettings object itself for good measure
-    data(n).acqSettings = acqSettings;
+    warning off
+    data.acqSettings = struct(acqSettings);
+    warning on
 end

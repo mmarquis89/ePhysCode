@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Mar-01', 1);
+expData = loadExperiment('2017-Mar-11', 1);
 
 % Start background process to backup all data that is at least a day old
 backupLogTransfer();
@@ -29,19 +29,11 @@ end
 bl = [];
 odorTrials = [];
 
-% blockNum = [4];
-% odorNum = [3];
-%
-% for iOdor = 1:numel(odorNum)
-%     odorTrials = [odorTrials, find(cellfun(@(x) strcmp(num2str(x), num2str(odorNum(iOdor))), {expData.expInfo.valveID}))];
-% end
+trialList = [16:31 33:40];
 
-trialList = [17:32 34:65];
-% blTrials = sort(odorTrials(ismember(odorTrials,[blockLists{blockNum}])));
-% trialList = blTrials(21);
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
-bl = makeBl(block, trialList);  % Reformat into more usable structure
-for iFold = 1 % Just here so I can fold the code below
+if ~isempty(block)
+    bl = makeBl(block, trialList);  % Reformat into more usable structure
        
     % PLOT EACH TRIAL VOLTAGE AND CURRENT
     f = figInfo;
@@ -63,8 +55,8 @@ for iFold = 1 % Just here so I can fold the code below
             titleStr{2} = ['Trial ', num2str(bl.trialList(1)), ': ', strrep(bl.trialInfo.odor,'_','\_')];
             title(titleStr{2});
         end
-    end
     % legend({'Baseline', 'First Ejection', 'Last Ejection'})
+end
 end
 
 %% Estimate seal resistance
@@ -79,13 +71,14 @@ bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate)
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [4 10];
-f.yLims = [-26  -14];
+f.timeWindow = [4 11];
+f.yLims = [-65  -45];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
-f.title = []; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
+f.title = ['Trial #', num2str(bl.trialList(1)), ' - ', ...
+                regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')]; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
 %regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')];
 f.figLegend = {};
 
@@ -138,8 +131,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [5 10];
-f.yLims = [];
+f.timeWindow = [4 11];
+f.yLims = [-65 -45];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -213,7 +206,7 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = [2 2 1 1]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = [2 2 2 2]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
 spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
 bl.spikes = spikes;                     % Save to data structure
@@ -261,7 +254,7 @@ f = figInfo;
 f.timeWindow = [5 10];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*8;
+nBins = (diff(f.timeWindow)+1)*4;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -269,7 +262,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Mar_1_R';
+filename = 'Mar_09_Rasters';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -328,6 +321,7 @@ strDate = expData.expInfo(1).date;
 nTrials = length(expData.expInfo);
         
 for iTrial = 1:nTrials
+    % Get name of current trial
     trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];   
     disp(trialStr)
     savePath = fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies', strDate, trialStr);
@@ -335,25 +329,31 @@ for iTrial = 1:nTrials
     
     if ~isempty(currFiles) && isempty(dir(fullfile(savePath, '*.avi'))) % Make sure there's at least one image file and no .avi file already in this trial's directory
         currFrames = {currFiles.name}';
+        
+        % Create video writer object
         outputVid = VideoWriter([fullfile(savePath, [trialStr, '.avi'])]);
         outputVid.FrameRate = expData.expInfo(1).acqSettings.frameRate;
         open(outputVid)
+        
+        % Write each .tif file to video
         for iFrame = 1:length(currFrames)
-            currImg = imread([savePath, currFrames{iFrame}]);
+            currImg = imread(fullfile(savePath, currFrames{iFrame}));
             writeVideo(outputVid, currImg);
         end
         close(outputVid)
     end   
 end
 
-%% CALCULATE OR LOAD MEAN OPTICAL FLOW
+% CALCULATE OR LOAD MEAN OPTICAL FLOW
 
 nTrials = length(expData.expInfo);
 strDate = expData.expInfo(1).date;
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
 allFlow = cell(nTrials, 1);
+
 if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat'])))
     for iTrial = 1:nTrials
+        % Get trial name
         trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
         disp(trialStr)
         
@@ -390,7 +390,7 @@ else
     load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
 end
 
-%% CREATE COMBINED PLOTTING VIDEOS
+% CREATE COMBINED PLOTTING VIDEOS
 
 frameRate = expData.expInfo(1).acqSettings.frameRate;
 for iTrial = 1:length(expData.expInfo);
@@ -486,7 +486,7 @@ for iTrial = 1:length(expData.expInfo);
     end
 end
 
-%% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
+% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
 
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
 strDate = expData.expInfo(1).date;

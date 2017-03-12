@@ -1,4 +1,4 @@
-function data = Acquire_Trial(acqSettings)
+function [data] = Acquire_Trial(acqSettings)
 
 % ===================================================================================================================
 % acqSettings: an acqSettings object with the following properties: 
@@ -28,19 +28,19 @@ function data = Acquire_Trial(acqSettings)
 % ====================================================================================================================
 
 %% SETUP TRIAL PARAMETERS AND STIMULUS DATA
-     
+
     % Pull variables from settings
     trialDuration = acqSettings.trialDuration;
-    altStimDuration = acqSettings. altStimDuration;
+    altStimDuration = acqSettings.altStimDuration;
     altStimType = acqSettings.altStimType;
     valveID = acqSettings.valveID;
     Ihold = acqSettings.Ihold;
     Istep = acqSettings.Istep;
     
     % Run initial setup function
-    [data, n] = acquisitionSetup(acqSettings);
-    sampRate = data(n).sampratein;
-    data(n).acquisition_filename = mfilename('fullpath');       % Saves name of mfile that generated data
+    [data, trialNum] = acquisitionSetup(acqSettings);
+    sampRate = data.sampratein;
+    data.acquisition_filename = mfilename('fullpath');       % Saves name of mfile that generated data    
     
     % Check if trial will use stimulus
     if length(trialDuration) == 1
@@ -112,12 +112,12 @@ function data = Acquire_Trial(acqSettings)
     
     % Set up amplifier external current command
     if ~isempty(Istep)
-        preStepOut = ones(sampRate*data(n).stepStartTime,1) * Ihold/2;
-        stepOut = (ones(sampRate*data(n).stepLength, 1) * (Ihold + Istep)/2);
-        postStepOut = ones(sampRate * (sum(trialDuration) - (data(n).stepStartTime + data(n).stepLength)), 1) * Ihold/2;
-        Icommand = [preStepOut; stepOut; postStepOut] - data(n).DAQOffset/2;
+        preStepOut = ones(sampRate*data.stepStartTime,1) * Ihold/2;
+        stepOut = (ones(sampRate*data.stepLength, 1) * (Ihold + Istep)/2);
+        postStepOut = ones(sampRate * (sum(trialDuration) - (data.stepStartTime + data.stepLength)), 1) * Ihold/2;
+        Icommand = [preStepOut; stepOut; postStepOut] - data.DAQOffset/2;
     else
-        Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/2) - data(n).DAQOffset/2;
+        Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/2) - data.DAQOffset/2;
     end
     
     % Set up camera trigger output
@@ -138,8 +138,8 @@ function data = Acquire_Trial(acqSettings)
     
     % Setup session and input channels
     s = daq.createSession('ni');
-    s.DurationInSeconds = sum(data(n).trialduration);
-    s.Rate = data(n).sampratein;
+    s.DurationInSeconds = sum(data.trialduration);
+    s.Rate = data.sampratein;
     s.addAnalogInputChannel('Dev2', 0:5,'Voltage');              % Amplifier data and telegraphs 
     for iChan=1:6
         s.Channels(1,iChan).InputType = 'SingleEnded';
@@ -164,24 +164,26 @@ function data = Acquire_Trial(acqSettings)
     outputData(:,6) = altStimOut; 
     outputData(:,7) = camTrigOut;
     outputData(:,8) = Icommand;
+
     % Save all command data and queue for output
-    data(n).outputData = outputData;
+    data.outputData = outputData;
     s.queueOutputData(outputData);
-  
+
     % Start acquisition
-    s.Rate = data(n).samprateout;
+    s.Rate = data.samprateout;
     rawAcqData = s.startForeground();
 
 %% RUN POST-PROCESSING AND SAVE DATA
-    [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, rawAcqData, n);
-   
+
+    [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, rawAcqData, trialNum);
+    
     % Move camera files from temp directory to local and network folders
-    savePath = ['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data(n).date, '/E', num2str(acqSettings.expNum), '_T', num2str(n), '/'];
+    savePath = ['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/E', num2str(acqSettings.expNum), '_T', num2str(trialNum), '/'];
     
     % If necessary, add directory path to log file for later backup
-    if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data(n).date, '/'])
+    if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/'])
         pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
-        fprintf(pathLog, ['\r\n_Movies/', data(n).date]);
+        fprintf(pathLog, ['\r\n_Movies/', data.date]);
         fclose('all');
     end
     
@@ -212,16 +214,16 @@ function data = Acquire_Trial(acqSettings)
 %% PLOT FIGURES
     
     % Make time vector for x-axis
-    time = 1/data(n).sampratein:1/data(n).sampratein:sum(data(n).trialduration);
+    time = 1/data.sampratein:1/data.sampratein:sum(data.trialduration);
     
     % Create figure and plot scaled out
     figure (1);clf; hold on
     set(gcf,'Position',[10 550 1850 400],'Color',[1 1 1]);
     set(gca,'LooseInset',get(gca,'TightInset'))
     plot(time(.05*sampRate:end), scaledOut(.05*sampRate:end));
-    if strcmp(data(n).scaledOutMode, 'V')
+    if strcmp(data.scaledOutMode, 'V')
         ylabel('Vm (mV)');
-    elseif strcmp(data(n).scaledOutMode, 'I')
+    elseif strcmp(data.scaledOutMode, 'I')
         ylabel('Im (pA)');
     end
     
@@ -236,7 +238,7 @@ function data = Acquire_Trial(acqSettings)
             plot([altStimEnd, altStimEnd], ylim, 'Color', 'r')  % Alternate stim end
         end
     end
-    title(['Trial Number ' num2str(n) ]);
+    title(['Trial Number ' num2str(trialNum) ]);
     set(gca,'LooseInset',get(gca,'TightInset'))
     box off
     
@@ -244,10 +246,10 @@ function data = Acquire_Trial(acqSettings)
     figure (2); clf; hold on
     set(gcf,'Position',[10 50 1850 400],'Color',[1 1 1]);
     set(gca,'LooseInset',get(gca,'TightInset'))
-    if strcmp(data(n).scaledOutMode, 'V')
+    if strcmp(data.scaledOutMode, 'V')
         plot(time(.05*sampRate:end), current(.05*sampRate:end)); 
         ylabel('Im (pA)');
-    elseif strcmp(data(n).scaledOutMode, 'I')
+    elseif strcmp(data.scaledOutMode, 'I')
         plot(time(.05*sampRate:end), tenVm(.05*sampRate:end));
         ylabel('Vm (mV)');
     end
@@ -263,11 +265,17 @@ function data = Acquire_Trial(acqSettings)
             plot([altStimEnd, altStimEnd], ylim, 'Color', 'r')  % Alternate stim end
         end
     end
-    title(['Trial Number ' num2str(n) ]);
+    title(['Trial Number ' num2str(trialNum) ]);
     box off;
     
     % Plot input resistance across experiment
     figure(3); clf; hold on
-    plotRins(data);
+    set(gcf, 'Position', [1250 40 620 400], 'Color', [1 1 1]);
+    set(gca, 'LooseInset', get(gca, 'TightInset'));
+    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data\',data.date, [data.date, '_E', num2str(data.expNum), '_Rinputs.mat']), 'Rins');
+    plot(1:length(Rins), Rins, 'LineStyle', 'none', 'Marker', 'o');
+    xlim([0, length(Rins)+1]);
+    xlabel('Trial');
+    ylabel('Rin (GOhm)'); % Not using tex markup to troubleshoot crashing issue: ylabel('R_{input}  (G\Omega)');
 
     
