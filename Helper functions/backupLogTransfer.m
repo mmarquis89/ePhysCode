@@ -13,7 +13,7 @@ while true
     if ~ischar(myLine)
         break
     end 
-    
+    disp(myLine)
     % Sort them into two categories based on whether they contain today's date
     if ~isempty(strfind(myLine,strDate))
         pendingPaths{end+1} = myLine;
@@ -26,10 +26,10 @@ fclose('all');
 % Append older paths to backupQueueFile
 backupFile = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/BackupQueueFile.txt', 'a');
 if ~isempty(transferPaths)
-    fprintf(backupFile, [transferPaths{1}]);
+    fprintf(backupFile, strtrim([transferPaths{1}]));
     if length(transferPaths) > 1
         for iLine = 2:length(transferPaths)
-            fprintf(backupFile, ['\r\n', transferPaths{iLine}]);
+            fprintf(backupFile, ['\n', strtrim(transferPaths{iLine})]);
         end
     end
 end
@@ -40,8 +40,8 @@ newPending = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup log
 if ~isempty(pendingPaths)  
     fprintf(newPending, [pendingPaths{1}]);
     if length(pendingPaths) > 1
-        for iLine = 1:length(pendingPaths)
-            fprintf(newPending, ['\r\n', pendingPaths{iLine}]);
+        for iLine = 2:length(pendingPaths)
+            fprintf(newPending, ['\n', pendingPaths{iLine}]);
         end
     end
 end

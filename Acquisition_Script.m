@@ -1,11 +1,11 @@
 
-expNum = 2; 
+expNum = 1; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
-Istep = [-2];
-Ihold = -1;
+Istep = [];
+Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'EthylAcetate_e-7', 'PentylAcetate_e-6 ', 'Farnesol_e-2 ', 'ParaffinOil'};
+odors = {'cVA_e-2', 'GeranylAcetate_e-2', 'ACV_e-3', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -41,7 +41,7 @@ odorList = shuffleTrials(odors(1:4), nReps);
 disp('Shuffle complete')
 
 %Setup odor and valve list manually
-% odorList = odors([2 3 2 3 2 3 2 3]);
+% odorList = odors([2 3 2 3 2 3 2 3]);;
 
 for iFold = 1
     aS = acqSettings;

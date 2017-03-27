@@ -1,10 +1,10 @@
 
 %% LOAD EXPERIMENT
 
-expData = loadExperiment('2017-Mar-11', 1);
-
 % Start background process to backup all data that is at least a day old
 backupLogTransfer();
+
+expData = loadExperiment('2017-Feb-20', 2);
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -29,34 +29,56 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [16:31 33:40];
+trialList = [8:14 17:20 22:59];
+
+% 3/12
+% Baseline: [8:15 17:47]
+% DA: [48:49 53:72]
+
+
+% 3/13
+% Baseline: [8:39 43:51]
+% DA 1: [53:62]
+% Washout 1: [76:98]
+% DA 2: [99:122]
+% Washout 2: [124:162]
+
+
+% 3/15
+% Pre-DA: [8:9 12:13 16 19:22 25:31]
+% Post-DA: [33:47]
+% Washout: [50:64]
+% DA 2: [65:112]
+
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
+plotOn = 1;
 if ~isempty(block)
     bl = makeBl(block, trialList);  % Reformat into more usable structure
-       
-    % PLOT EACH TRIAL VOLTAGE AND CURRENT
-    f = figInfo;
-    f.figDims = [10 550 1850 400];
-    f.timeWindow = [];
-    f.yLims = [];
-    f.lineWidth = [];
-    f.cm = winter(bl.nTrials);
-    [h,j] = traceOverlayPlot(bl, f);
-    legend off
-    figure(h);
-    legend off
-    
-    % Include odor name in title if block is a single trial
-    if bl.nTrials == 1
-        if ~isempty(bl.trialInfo.odor)
-            ax = gca;
-            titleStr = ax.Title.String;
-            titleStr{2} = ['Trial ', num2str(bl.trialList(1)), ': ', strrep(bl.trialInfo.odor,'_','\_')];
-            title(titleStr{2});
+
+    if plotOn
+  %     PLOT EACH TRIAL VOLTAGE AND CURRENT
+        f = figInfo;
+        f.figDims = [10 550 1850 400];
+        f.timeWindow = [];
+        f.yLims = [];
+        f.lineWidth = [];
+        f.cm = winter(bl.nTrials);
+        [h,j] = traceOverlayPlot(bl, f);
+        legend off
+        figure(h);
+        legend off
+        
+        % Include odor name in title if block is a single trial
+        if bl.nTrials == 1
+            if ~isempty(bl.trialInfo.odor)
+                ax = gca;
+                titleStr = ax.Title.String;
+                titleStr{2} = ['Trial ', num2str(bl.trialList(1)), ': ', strrep(bl.trialInfo.odor,'_','\_')];
+                title(titleStr{2});
+            end
         end
-    % legend({'Baseline', 'First Ejection', 'Last Ejection'})
-end
+    end
 end
 
 %% Estimate seal resistance
@@ -71,8 +93,8 @@ bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate)
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [4 11];
-f.yLims = [-65  -45];
+f.timeWindow = [5 10];
+f.yLims = [-53  -40];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
@@ -103,22 +125,24 @@ ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
-f.timeWindow = [7 12];
+f.timeWindow = [5 11];
 f.lineWidth = 1;
-f.yLims = [-45 -40];
+f.yLims = [-50 -30];
 
 medfilt = 1;
 offset = 0;
 
 % Specify trial groups
-traceGroups = repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = [ones(1,42), 2*ones(1,25), 3*ones(1,23), 4*ones(1,24), 5*ones(1,38)]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
-groupColors = [0 0 1; 1 0 0];%jet(numel(trialList));
-f.figLegend = []; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
+groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(numel(trialList));
+f.figLegend = {'Baseline', 'DA 1', 'Washout 1', 'DA 2', 'Washout 2'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 title([])
 % legend('off')
+[~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
+set(objh, 'linewidth', 4);
 % legend({''; ''}, 'FontSize', 16, 'Location', 'northwest')
 ax = gca;
 ax.LineWidth = 2;
@@ -131,8 +155,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [4 11];
-f.yLims = [-65 -45];
+f.timeWindow = [5 10];
+f.yLims = [];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -157,21 +181,21 @@ ax.YColor = 'k';
 ax.FontSize = 16;
 
 %% Calculate input resistances
-sR = bl.sampRate;
+rate = bl.sampRate;
 Istep = 1;
 calcWin = 0.2;
 stepStart = 1; % Note hardcoded value
 stepLength = 1; % Note hardcoded value
 
 inputResistances = [];
-inputResistances(1,1) = calcRinput(avgTraces(1,:), sR, Istep, stepStart, stepLength, calcWin);
+inputResistances(1,1) = calcRinput(avgTraces(1,:), rate, Istep, stepStart, stepLength, calcWin);
 %     inputResistances(2,1) = calcRinput(avgTraces(2,:), sR, Istep, stepStart, stepLength, calcWin);
 stepStart = 9.1;
 stepLength = 0.5;
-inputResistances(1,2) = calcRinput(avgTraces(1,:), sR, Istep, stepStart, stepLength, calcWin);
+inputResistances(1,2) = calcRinput(avgTraces(1,:), rate, Istep, stepStart, stepLength, calcWin);
 %     inputResistances(2,2) = calcRinput(avgTraces(2,:), sR, Istep, stepStart, stepLength, calcWin);
 stepStart = 12.5;
-inputResistances(1,3) = calcRinput(avgTraces(1,:), sR, Istep, stepStart, stepLength, calcWin);
+inputResistances(1,3) = calcRinput(avgTraces(1,:), rate, Istep, stepStart, stepLength, calcWin);
 %     inputResistances(2,3) = calcRinput(avgTraces(2,:), sR, Istep, stepStart, stepLength, calcWin);
 
 %% OVERLAY MEAN TRACES FOR A SINGLE ODOR ACROSS BLOCKS
@@ -251,9 +275,9 @@ end
 
 %% PLOT SPIKE RASTERS
 f = figInfo;
-f.timeWindow = [5 10];
+f.timeWindow = [3 12];
 f.figDims = [10 50 1500 900];
-histOverlay = 1;
+histOverlay = 0;
 nBins = (diff(f.timeWindow)+1)*4;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
@@ -262,7 +286,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Mar_09_Rasters';
+filename = 'Feb_20_Exp_2_FlowVmHist';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -272,7 +296,7 @@ if exist('f', 'var')
 else
     set(h,'PaperUnits','inches')
 end
-export_fig(['C:\Users\Wilson Lab\Documents\MATLAB\Figs\PNG files\', filename], '-png')
+export_fig(['C:\Users\Wilson Lab\Documents\MATLAB\Figs\PNG files\', filename], '-png');
 t(3) = toc; tL{3} = 'Local PNG save';
 
 dispStr = '';
@@ -319,7 +343,8 @@ bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
 
 strDate = expData.expInfo(1).date;
 nTrials = length(expData.expInfo);
-        
+ 
+disp('Creating videos...');
 for iTrial = 1:nTrials
     % Get name of current trial
     trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];   
@@ -344,12 +369,13 @@ for iTrial = 1:nTrials
     end   
 end
 
-% CALCULATE OR LOAD MEAN OPTICAL FLOW
+%% CALCULATE OR LOAD MEAN OPTICAL FLOW
 
 nTrials = length(expData.expInfo);
 strDate = expData.expInfo(1).date;
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
 allFlow = cell(nTrials, 1);
+disp('Calculating optic flow...')
 
 if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat'])))
     for iTrial = 1:nTrials
@@ -390,9 +416,11 @@ else
     load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
 end
 
-% CREATE COMBINED PLOTTING VIDEOS
+%% CREATE COMBINED PLOTTING VIDEOS
 
 frameRate = expData.expInfo(1).acqSettings.frameRate;
+disp('Creating combined plotting videos...')
+
 for iTrial = 1:length(expData.expInfo);
         
     parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
@@ -441,11 +469,11 @@ for iTrial = 1:length(expData.expInfo);
             
             % Create figure
             h = figure(10); clf
-            set(h, 'Position', [50 100 1800 700])
+            set(h, 'Position', [50 100 1800 700]);
             
             % Movie frame plot
-            axes('Units', 'Pixels', 'Position', [50 225 300 300])
-            imshow(currFrame)
+            axes('Units', 'Pixels', 'Position', [50 225 300 300]);
+            imshow(currFrame);
             axis image
             axis off
             if ~isempty(annotLines)
@@ -459,39 +487,40 @@ for iTrial = 1:length(expData.expInfo);
             hold on
             fTemp = figInfo;
             yRange = max(currVm) - min(currVm);
-            fTemp.yLims = [min(currVm)-0.1*yRange, max(currVm)+0.2*yRange] 
-            plotTraces(ax, blTemp, fTemp, currVm', [0 0 1], annotLines, [0 0 0])         
+            fTemp.yLims = [min(currVm)-0.1*yRange, max(currVm)+0.2*yRange];
+            plotTraces(ax, blTemp, fTemp, currVm', [0 0 1], annotLines, [0 0 0]);         
 %             t = (1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein):(1/expData.expInfo(1).sampratein)*length(currVm);
 %             plot(t, currVm)
-            plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()], 'LineWidth', 1, 'color', 'r')
+            plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()], 'LineWidth', 1, 'color', 'r');
             xlabel('Time (sec)');
             ylabel('Vm (mV)');
             
             % Optic flow plot
-            axes('Units', 'Pixels', 'Position', [425 20 1330 300])
+            axes('Units', 'Pixels', 'Position', [425 20 1330 300]);
             hold on
             frameTimes = (1:1:length(allFlow{iTrial}))./ frameRate;
             ylim([0, 1.5]);
-            plot(frameTimes(2:end), allFlow{iTrial}(2:end))
-            plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],[ylim()],'LineWidth', 1, 'color', 'r')
+            plot(frameTimes(2:end), allFlow{iTrial}(2:end));
+            plot([iFrame*(1/frameRate), iFrame*(1/frameRate)],ylim(),'LineWidth', 1, 'color', 'r');
             % set(gca,'ytick',[])
             set(gca,'xticklabel',[])
             ylabel('Optic flow (au)')
             
             % Write frame to video
             writeFrame = getframe(h);
-            writeVideo(myVid, writeFrame)
+            writeVideo(myVid, writeFrame);
         end
         close(myVid)
     end
 end
 
-% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
+%% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
 
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
 strDate = expData.expInfo(1).date;
 frameRate = expData.expInfo(1).acqSettings.frameRate;
 nTrials = length(expData.expInfo);
+disp('Concatenating videos...')
 
 % Create videowriter 
 myVidWriter = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'], ['E', num2str(expData.expInfo(1).expNum),'_AllTrials.avi']));
@@ -523,7 +552,191 @@ close(myVidWriter)
 clear('myMovie')
 
 
+%% PLOT Vm VS. OPTIC FLOW ACROSS TRIALS
+
+% Load parameters
+strDate = expData.expInfo(1).date;
+rate = bl.sampRate;
+stepStart = bl.trialInfo(1).stepStartTime;
+stepLen = bl.trialInfo(1).stepLength;
+trialDuration = bl.trialInfo(1).trialduration;
+
+% Load optic flow data
+load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+
+% Separate out optic flow data from the current block
+blFlow = allFlow(trialList);
+
+avgVm = [];
+avgFlow = [];
+for iTrial = 1:bl.nTrials
+    
+    % Compute mean Vm for the trial, excluding the test step and odor response period
+    preStep = 1:rate*stepStart;
+    preOdor = rate*(stepStart+stepLen):rate*trialDuration(1);
+    postOdor = rate*(sum(trialDuration(1:2))+1):rate*sum(trialDuration);
+    avgTimes = [preStep, preOdor, postOdor];
+    avgVm(iTrial) = mean(bl.scaledOut([avgTimes], iTrial));
+    
+    % Compute mean optic flow for the trial from the same time periods
+    rate = bl.trialInfo(1).acqSettings.frameRate;
+    preStep = 1:rate*stepStart;
+    preOdor = rate*(stepStart+stepLen):rate*trialDuration(1);
+    postOdor = rate*(sum(trialDuration(1:2))+1):rate*sum(trialDuration);
+    avgTimes = [preStep, preOdor, postOdor];    
+    avgFlow(iTrial) = mean(blFlow{iTrial}(avgTimes));
+end
+
+% Make scatterplot
+cm = winter(bl.nTrials);
+h = figure(1); clf;
+scatter(avgVm, avgFlow, [], cm, 'o', 'filled');
+xlabel('Average Vm (mV)');
+ylabel('Average optic flow (AU)');
+title('DA #1 + DA #2');
+
+% Format figure
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 12;
+set(gcf, 'Color', [1 1 1]);
+
+%% PLOT Vm VS. OPTIC FLOW FOR EACH VIDEO FRAME
+
+% Load parameters
+strDate = expData.expInfo(1).date;
+sR = bl.sampRate;
+fR = bl.trialInfo(1).acqSettings.frameRate;
+stepStart = bl.trialInfo(1).stepStartTime;
+stepLen = bl.trialInfo(1).stepLength;
+trialDuration = bl.trialInfo(1).trialduration;
+
+% Load optic flow data
+load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+
+% Separate out optic flow data from the current block
+blFlow = allFlow(trialList);
+
+plotVm = [];
+plotFlow = [];
+for iTrial = 1:bl.nTrials
+    
+    % Load optic flow data for current trial
+    currFlow = blFlow{iTrial};
+    
+    % Compute mean Vm for each frame of video
+    currVm = [];
+    for iFrame = 1:length(currFlow)
+        sampPerFrame = sR/fR;
+        sampStart = (floor((iFrame-1)*sampPerFrame))+1;
+        sampEnd = floor(iFrame*sampPerFrame);
+        currVm(iFrame) = mean(bl.scaledOut(sampStart:sampEnd, iTrial));
+        end
+    
+    % Remove frames from the test step and odor response period and add to plotting data
+    preStep = 2:fR*stepStart; % Starting at 2 because the first optic flow measurement is invalid
+    preOdor = fR*(stepStart+stepLen):fR*trialDuration(1);
+    postOdor = fR*(sum(trialDuration(1:2))+1):fR*sum(trialDuration);
+    goodFrames = [preStep, preOdor, postOdor]';
+    plotVm = [plotVm; currVm(goodFrames)'];
+    plotFlow = [plotFlow; blFlow{iTrial}(goodFrames)];
+    
+end
+
+% Make scatter plot of all datapoints
+cm = winter(numel(plotVm));
+h = figure(1); clf;
+scatter(plotVm, plotFlow, [20], cm, 'filled');
+xlabel('Average Vm (mV)');
+ylabel('Average optic flow (AU)');
+title('TH-Gal4 Feb 20 Exp 2');
+
+% Format figure
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 12;
+set(gcf, 'Color', [1 1 1]);
+set(gcf, 'Position', [100 100 1000 800])
+
+%% PLOT 2D HISTOGRAM OF Vm VS. OPTIC FLOW FOR EACH FRAME
+
+% Load parameters
+strDate = expData.expInfo(1).date;
+sR = bl.sampRate;
+fR = bl.trialInfo(1).acqSettings.frameRate;
+stepStart = bl.trialInfo(1).stepStartTime;
+stepLen = bl.trialInfo(1).stepLength;
+trialDuration = bl.trialInfo(1).trialduration;
+
+% Load optic flow data
+load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+
+% Separate out optic flow data from the current block
+blFlow = allFlow(trialList);
+
+plotVm = [];
+plotFlow = [];
+for iTrial = 1:bl.nTrials
+    
+    % Load optic flow data for current trial
+    currFlow = blFlow{iTrial};
+    
+    % Compute mean Vm for each frame of video
+    currVm = [];
+    for iFrame = 1:length(currFlow)
+        sampPerFrame = sR/fR;
+        sampStart = (floor((iFrame-1)*sampPerFrame))+1;
+        sampEnd = floor(iFrame*sampPerFrame);
+        currVm(iFrame) = mean(bl.scaledOut(sampStart:sampEnd, iTrial));
+    end
+    
+    % Remove frames from the test step and odor response period and add to plotting data
+    preStep = 2:fR*stepStart; % Starting at 2 because the first optic flow measurement is invalid
+    preOdor = fR*(stepStart+stepLen):fR*trialDuration(1);
+    postOdor = fR*(sum(trialDuration(1:2))+1):fR*sum(trialDuration);
+    goodFrames = [preStep, preOdor, postOdor]';
+    plotVm = [plotVm; currVm(goodFrames)'];
+    plotFlow = [plotFlow; blFlow{iTrial}(goodFrames)];
+    
+end
+
+% Make 2D histogram
+histData = [plotVm, plotFlow];
+nBins = 100;
+[N,C] = hist3(histData, [nBins, nBins]);
+myHist = N';
+myHist(size(N,1) + 1, size(N,2) + 1) = 0; % Pad edges w/zeros to for pcolor() plotting
+xBins = linspace(min(histData(:,1)*0.99),max(histData(:,1)*1.01),size(N,1)+1);
+yBins = linspace(min(histData(:,2)*0.99),max(histData(:,2)*1.01),size(N,1)+1);
+
+% Plot pseudocolor image of histogram data
+close all; h = figure(1); clf;
+sf = pcolor(xBins,yBins,myHist);
+xlabel('Average Vm (mV)');
+ylabel('Average optic flow (AU)');
+title('Feb 20 Exp #2');
+colormap([1,1,1 ; parula(max(max(myHist)))]);
+% Format figure
+sf.EdgeColor = 'none';
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 12;
+set(gcf, 'Color', [1 1 1]);
+set(gcf, 'Position', [50 50 900 800])
+
+
 %% PLOT SPIKE RATE VS. OPTIC FLOW
+
+strDate = expData.expInfo(1).date;
+
+% Load optic flow data
+load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
 
 % Separate out optic flow data from the current block
 blFlow = allFlow(trialList);
@@ -540,7 +753,7 @@ for iTrial = 1:bl.nTrials
     
     figure(iTrial); clf; hold on
     set(gcf, 'Position', [100 100 1500 400])
-    nBins = sum(bl.trialDuration)*.5;
+    nBins = sum(bl.trialDuration);
     binLength = sum(bl.trialDuration)./nBins;
     
     yyaxis left
@@ -559,4 +772,5 @@ plot(concatFlow, data, 'o');
 
 
 
+clear all
 

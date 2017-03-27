@@ -10,8 +10,8 @@ function [data, trialNum] = acquisitionSetup(acqSettings)
     strDate = datestr(now, 'yyyy-mmm-dd');
     if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate])
         mkdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate]);
-        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup', 'a');
-        fprintf(pathLog, ['\r\n', strDate]);
+        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
+        fprintf(pathLog, ['\n', strDate]);
         fclose('all');
     end
 

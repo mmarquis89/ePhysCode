@@ -9,15 +9,15 @@ function output = loadExperiment(expDate, expNumber)
 %===========================================================================================================================
     
     % Check date to maintain backwards-compatibility with older data
-    formattedDate = datetime(expDate, 'InputFormat', 'yyyy-MMM-dd')
+    formattedDate = datetime(expDate, 'InputFormat', 'yyyy-MMM-dd');
     
     if formattedDate < datetime('2017-Mar-12')    
   	%  ***Metadata is already stored in a single struct for all trials***
         
         % Load data and get total number of trials
         load(['Data/', expDate,'/WCwaveform_',expDate,'_E',num2str(expNumber), '.mat'],'data');
-        nTrials = length(data)
-        
+        nTrials = length(data);
+        output.expInfo = data;
     else
     %  ***Metadata is stored in individual structs for each trial***
   

@@ -52,10 +52,11 @@ function [data] = Acquire_Trial(acqSettings)
     % Make sure temporary camera directory doesn't already have images
     tempDir = 'C:/tmp/*';
     dirContents = dir(tempDir(1:end-1));
-    if ~isempty(dirContents([dirContents.isdir] & ~strncmpi('.', {dirContents.name},1)))
-        delete('C:/tmp/*.tiff');
+    if length(dirContents) > 2
+        disp('Warning: one or more images already exist in temporary video frame save directory')
     end
-    
+    delete('C:/tmp/*.tif');  
+        
     % Set up odor stimulus data
     if stimOn        
         % Make pre- and post-stim output vectors
@@ -180,25 +181,28 @@ function [data] = Acquire_Trial(acqSettings)
     % Move camera files from temp directory to local and network folders
     savePath = ['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/E', num2str(acqSettings.expNum), '_T', num2str(trialNum), '/'];
     
-    % Check to make sure the camera saved the expected number of pictures
+    
+    % Create specific save directory if it doesn't already exist
+    if ~isdir(savePath)
+        mkdir(savePath);
+    end
+    
+%     % Check to make sure the camera saved the expected number of pictures
     framesRequested = sum(data.outputData(:,7));
     framesSaved = length(dir([tempDir, '.tif*']));
     if framesRequested ~= framesSaved && framesSaved > 0
        disp('Warning! Number of video frames saved does not match number of frames requested!')
        errorMsg = ['Requested: ', num2str(framesRequested), '  Saved: ', num2str(framesSaved)];
-       save([savePath,'frameCountError.mat'], errorMsg);
+       errorFile = fopen([savePath, 'frameCountError.txt'], 'wt');
+       fprintf(errorFile, errorMsg);
+       fclose('all');
     end
     
     % If necessary, add directory path to log file for later backup
     if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/'])
         pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
-        fprintf(pathLog, ['\r\n_Movies/', data.date]);
+        fprintf(pathLog, ['\n_Movies/', data.date]);
         fclose('all');
-    end
-    
-    % Create specific save directory if it doesn't already exist
-    if ~isdir(savePath)
-        mkdir(savePath);
     end
     
     % Move images

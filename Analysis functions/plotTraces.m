@@ -70,6 +70,10 @@ end
 % Update yLims if necessary
 if ~isempty(figInfo.yLims)
    yLims = figInfo.yLims;
+   % Make sure yLims are not equal to prevent error
+   if yLims(1) == yLims(2)
+       yLims = ylim;
+   end
 else
    yLims = ylim;
 end
@@ -77,15 +81,15 @@ end
 % Plot annotation lines
 for iLine = 1:length(annotLines)
     if ~isempty(annotLines{iLine})
-    if min(annotLines{iLine}) >= tStart && max(annotLines{iLine}) <= tStop
-        if length(annotLines{iLine}) == 1
-            plot([annotLines{iLine}, annotLines{iLine}], yLims, 'color', annotColors(iLine, :), 'linewidth', 2);
-        elseif length(annotLines{iLine}) == 2
-            yLen = abs(yLims(1)-yLims(2));
-            rectangle('Position', [annotLines{iLine}(1), (yLims(2)-0.08*yLen), diff(annotLines{iLine}), 0.025*yLen], ...
-                'FaceColor', annotColors(iLine, :), 'EdgeColor', annotColors(iLine, :))
+        if min(annotLines{iLine}) >= tStart && max(annotLines{iLine}) <= tStop
+            if length(annotLines{iLine}) == 1
+                plot([annotLines{iLine}, annotLines{iLine}], yLims, 'color', annotColors(iLine, :), 'linewidth', 2);
+            elseif length(annotLines{iLine}) == 2
+                yLen = abs(yLims(1)-yLims(2));
+                rectangle('Position', [annotLines{iLine}(1), (yLims(2)-0.08*yLen), diff(annotLines{iLine}), 0.025*yLen], ...
+                    'FaceColor', annotColors(iLine, :), 'EdgeColor', annotColors(iLine, :))
+            end
         end
-    end
     end
 end
 ylim(yLims);
