@@ -4,7 +4,7 @@
 % Start background process to backup all data that is at least a day old
 backupLogTransfer();
 
-expData = loadExperiment('2017-Feb-20', 2);
+expData = loadExperiment('2017-Apr-03', 1);
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -29,7 +29,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [8:14 17:20 22:59];
+trialList = [102:103];
 
 % 3/12
 % Baseline: [8:15 17:47]
@@ -80,12 +80,15 @@ if ~isempty(block)
         end
     end
 end
+disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
 
-%% Estimate seal resistance
-bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage)
+    %% Estimate seal resistance
+    bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage);
+    disp(['Estimated Rseal = ', num2str(bl.Rseal)])
 
-%% Estimate access resistance
-bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate)
+    %% Estimate access resistance
+    bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate);
+    disp(['Estimated Raccess = ', num2str(bl.Raccess)])
 
 %% BASIC TRACE PLOTTING
 
@@ -125,21 +128,21 @@ ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
-f.timeWindow = [5 11];
+f.timeWindow = [3 11];
 f.lineWidth = 1;
-f.yLims = [-50 -30];
+f.yLims = [-50 -20];
 
-medfilt = 1;
+medfilt = 0;
 offset = 0;
 
 % Specify trial groups
-traceGroups = [ones(1,42), 2*ones(1,25), 3*ones(1,23), 4*ones(1,24), 5*ones(1,38)]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = [1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(numel(trialList));
-f.figLegend = {'Baseline', 'DA 1', 'Washout 1', 'DA 2', 'Washout 2'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
+f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
-title([])
+title(['ACV e-2, LED power = 100%'])
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -156,7 +159,7 @@ f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
 f.timeWindow = [5 10];
-f.yLims = [];
+f.yLims = [-45 -25];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -179,6 +182,7 @@ ax.LineWidth = 3;
 ax.XColor = 'k';
 ax.YColor = 'k';
 ax.FontSize = 16;
+
 
 %% Calculate input resistances
 rate = bl.sampRate;
@@ -230,7 +234,7 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = [2 2 2 2]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = [1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
 spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
 bl.spikes = spikes;                     % Save to data structure
@@ -275,10 +279,10 @@ end
 
 %% PLOT SPIKE RASTERS
 f = figInfo;
-f.timeWindow = [3 12];
+f.timeWindow = [6 9];
 f.figDims = [10 50 1500 900];
 histOverlay = 0;
-nBins = (diff(f.timeWindow)+1)*4;
+nBins = (diff(f.timeWindow)+1)*6;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -286,7 +290,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Feb_20_Exp_2_FlowVmHist';
+filename = 'Apr_03_Example_Overlay_ACV_100_ShortStim';
 savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 savefig(h, ['U:\Data Backup\Figs\', filename])
@@ -328,17 +332,6 @@ plot(fValsV, 10*log10(pfftC));
 title('Current'); xlabel('Frequency (Hz)'); ylabel('PSD(dB)'); xlim([-300 300]);
 ylim([-100 0]);
 
-
-%% Filter current
-[b,a] = butter(2,.004,'low');
-D = designfilt('lowpassiir', ...
-    'PassbandFrequency', 15, ...
-    'StopbandFrequency', 100, ...
-    'StopbandAttenuation', 100, ...
-    'SampleRate', 10000);
-fvtool(D)
-bl.voltage(:,1) = filtfilt(b,a, bl.current(:,1));
-
 %% CREATE MOVIES FROM .TIF FILES
 
 strDate = expData.expInfo(1).date;
@@ -369,7 +362,7 @@ for iTrial = 1:nTrials
     end   
 end
 
-%% CALCULATE OR LOAD MEAN OPTICAL FLOW
+% CALCULATE OR LOAD MEAN OPTICAL FLOW
 
 nTrials = length(expData.expInfo);
 strDate = expData.expInfo(1).date;
@@ -416,7 +409,7 @@ else
     load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
 end
 
-%% CREATE COMBINED PLOTTING VIDEOS
+% CREATE COMBINED PLOTTING VIDEOS
 
 frameRate = expData.expInfo(1).acqSettings.frameRate;
 disp('Creating combined plotting videos...')
@@ -514,7 +507,7 @@ for iTrial = 1:length(expData.expInfo);
     end
 end
 
-%% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
+% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
 
 parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
 strDate = expData.expInfo(1).date;
@@ -773,4 +766,19 @@ plot(concatFlow, data, 'o');
 
 
 clear all
+
+%% CALCULATE TOTAL DURATION OF EXPERIMENT
+
+startTime = expData.expInfo(1).sampleTime;
+endTime = expData.expInfo(end).sampleTime;
+
+expTime = endTime - startTime;
+expDur = expTime(4)*60 + expTime(5);
+disp(['Total experiment duration in minutes: ', num2str(expDur)])
+
+
+
+
+
+
 

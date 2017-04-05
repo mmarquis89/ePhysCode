@@ -12,6 +12,6 @@ current2 = median(current(voltage<1)); % Current during low voltage step
 dI = abs(current1 - current2);
 
 % Calculate seal resistance in GOhms
-Rseal = (dV / dI)
+Rseal = (dV / dI);
 
 end

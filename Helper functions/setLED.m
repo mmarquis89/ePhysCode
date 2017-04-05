@@ -13,7 +13,7 @@ outputVec = ones(1000, 1) * (10 * powerLevel/100);
 % Create and run session
 s = daq.createSession('ni');
 s.Rate = 10000; % Doesn't really matter what this is
-s.addAnalogInputChannel('Dev2', 0, 'Voltage')  % This "dummy" input channel is used just for its clock
+s.addAnalogInputChannel('Dev2', 0, 'Voltage');  % This "dummy" input channel is used just for its clock
 s.addAnalogOutputChannel('Dev2', 1, 'Voltage');
 s.queueOutputData(outputVec);
 x = s.startForeground(); % Recorded data from input channel is discarded
