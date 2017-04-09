@@ -45,11 +45,13 @@ else
 end
 
 % If non-odor stimulus was used, save the timing info
-bl.altStimDuration = stimCell{1};
-if ~isempty(bl.altStimDuration)
+stimCell = stimCell(~cellfun(@isempty, stimCell));
+if ~isempty(stimCell)
+    bl.altStimDuration = stimCell{1};
     bl.altStimStartTime = bl.altStimDuration(1);
     bl.altStimLength = bl.altStimDuration(2);
 else
+    bl.altStimDuration = [];
     bl.altStimStartTime = [];
     bl.altStimLength = [];
 end

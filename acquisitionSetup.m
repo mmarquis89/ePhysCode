@@ -8,16 +8,13 @@ function [data, trialNum] = acquisitionSetup(acqSettings)
 
 %%  CREATE DIRECTORIES AND UPDATE BACKUP LOG AS NEEDED
     strDate = datestr(now, 'yyyy-mmm-dd');
-    if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate])
-        mkdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate]);
-        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
-        fprintf(pathLog, ['\n', strDate]);
-        fclose('all');
+    if ~isdir(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate])
+        mkdir(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate]);
     end
 
 %% DETERMINE TRIAL NUMBER
 
-    D = dir(['Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'*.mat']);
+    D = dir(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate,'/WCwaveform_',strDate,'_E',num2str(acqSettings.expNum),'*.mat']);
     trialNum = length(D) + 1;
 
 %% SAVE CURRENT GIT HASH

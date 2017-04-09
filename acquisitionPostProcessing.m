@@ -74,7 +74,7 @@ else
 end
 
 % Save to running count of input resistances
-savePath = fullfile('C:/Users/Wilson Lab/Documents/MATLAB/Data', strDate);
+savePath = fullfile('C:/Users/Wilson Lab/Dropbox (HMS)/Data', strDate);
 RinputFile = fullfile(savePath,['*E', num2str(expNum), '_Rinputs*']);
 D = dir(RinputFile);
 if ~isempty(D)
@@ -98,10 +98,10 @@ end
 % Save data
 warning('error', 'MATLAB:save:sizeTooBigForMATFile');
 try
-    save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/WCwaveform_' strDate,'_E',num2str(expNum), '_T', num2str(trialNum)],'data');
+    save(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate,'/WCwaveform_' strDate,'_E',num2str(expNum), '_T', num2str(trialNum)],'data');
 catch
-    save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/WCwaveform_' strDate,'_E',num2str(expNum), '_T', num2str(trialNum)],'data', '-v7.3');
+    save(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate,'/WCwaveform_' strDate,'_E',num2str(expNum), '_T', num2str(trialNum)],'data', '-v7.3');
 end
-save(['C:/Users/Wilson Lab/Documents/MATLAB/Data/', strDate,'/Raw_WCwaveform_' strDate,'_E',num2str(expNum),'_',num2str(trialNum)],'current','scaledOut','tenVm');
+save(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate,'/Raw_WCwaveform_' strDate,'_E',num2str(expNum),'_',num2str(trialNum)],'current','scaledOut','tenVm');
 
 end

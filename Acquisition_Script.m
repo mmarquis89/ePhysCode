@@ -1,19 +1,20 @@
-
+setLED(5)
+%%
 expNum = 1; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
-Istep = [];
+Istep = [-1.5];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'cVA_e-2', 'GeranylAcetate_e-2', 'ACV_e-3', 'ParaffinOil'};
+odors = {'2-Butanone_e-2', 'GeranylAcetate_e-2', '3-Hexanol_e-2', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
 strDate = datestr(now, 'yyyy-mmm-dd');
-dList = dir(['data/', strDate,'/Raw_WCwaveform_',strDate,'_E',num2str(expNum),'*.mat']);
+dList = dir(['C:/Users/Wilson Lab/Dropbox (HMS)/data/', strDate,'/Raw_WCwaveform_',strDate,'_E',num2str(expNum),'*.mat']);
 if numel(dList) < 10
-    delete(['Data/', strDate,'/*_E',num2str(expNum),'*']);
-    rmdir(['Data/_Movies/', strDate, '/E', num2str(expNum), '*'], 's');
+    delete(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/', strDate,'/*_E',num2str(expNum),'*']);
+    rmdir(['C:/Users/Wilson Lab/Dropbox (HMS)/Data/_Movies/', strDate, '/E', num2str(expNum), '*'], 's');
 else
     disp('Too many trials for automatic deletion');
 end
@@ -35,13 +36,15 @@ disp(['Total time elapsed: ', num2str(toc), ' sec']);
 
 %% RUN ODOR TRIAL(S)
 
+%Setup odor and valve list manually
+% odorList = odors([4]);
+
 % Create shuffled trial order
 nReps = 2;
-odorList = shuffleTrials(odors(1:4), nReps);
-disp('Shuffle complete')
+odorPanel = [1:3];
 
-%Setup odor and valve list manually
-% odorList = odors([2 3 2 3 2 3 2 3]);;
+odorList = shuffleTrials(odors(odorPanel), nReps);
+disp('Shuffle complete')
 
 for iFold = 1
     aS = acqSettings;
@@ -71,23 +74,11 @@ disp('End of block');
 
 %% RUN OPTO STIM TRIAL(S)
 
-optoDuration = [5 3 7];
-LEDpower = 10; % 1-100
-
-% Setup trials of a single odor with alternating light stim (opto on second trial)
-valveNum = 3;
+optoDuration = [6 3 6];
+LEDpower = 100; % 1-100
+dutyCycle = 100; % 1-100
+odorPanel = [1];
 nReps = 1;
-trialOdor = odors{valveNum};
-optoDurationList = repmat({[] ; optoDuration}, nReps, 1);
-setLED(LEDpower); % Set LED to desired power level
-
-for iFold = 1
-    aS = acqSettings;
-    aS.expNum = expNum;
-    aS.trialDuration = trialDuration;
-    aS.Istep = Istep;
-    aS.Ihold = Ihold;
-end
 
 % Make sure opto and trial durations sum to the same number
 if sum(trialDuration) ~= sum(optoDuration)
@@ -95,17 +86,50 @@ if sum(trialDuration) ~= sum(optoDuration)
     return
 end
 
+% Set general acquisition parameters
+setLED(LEDpower); 
+for iFold = 1
+    aS = acqSettings;
+    aS.expNum = expNum;
+    aS.trialDuration = trialDuration;
+    aS.Istep = Istep;
+    aS.Ihold = Ihold;
+    aS.altStimParam = dutyCycle;
+end
+
+% Setup odor trials with alternating light stim (opto on second trial)
+if length(odorPanel) > 1
+    odorList = shuffleTrials(odors(odorPanel), nReps);
+    disp('Shuffle complete')
+else
+    odorList = odors(odorPanel);
+end
+nTrials = length(odorList);
+valveList = zeros(1,nTrials);
+for iOdor = 1:length(odors)
+    valveList(strcmp(odorList, odors(iOdor))) = iOdor;
+end
+
+% Duplicate each odor in the list
+repValveList = repmat(valveList, [2 1]); 
+repValveList = repValveList(:)';
+repOdorList = repmat(odorList, [2 1]);
+repOdorList = repOdorList(:)';
+optoDurationList = repmat({[] ; optoDuration}, length(repValveList)/2, 1);
+
 % Run Trials
 nTrials = length(optoDurationList);
 for iTrial = 1:nTrials
     aS.altStimDuration = optoDurationList{iTrial};
-    aS.odor = trialOdor;
-    aS.valveID = valveNum;
+    aS.odor = repOdorList{iTrial};
+    aS.valveID = repValveList(iTrial);
     if ~isempty(aS.altStimDuration)
         aS.altStimType = 'opto';
     end
-    disp(['iTrial = ', num2str(iTrial), ', Odor = ' trialOdor])
+    disp(['iTrial = ', num2str(iTrial), ', Odor = ' repOdorList{iTrial}])
+    tic
     Acquire_Trial(aS);
+    disp(['Total time elapsed: ', num2str(toc), ' sec']);
 end 
 disp('End of block');
 
@@ -153,9 +177,3 @@ for iTrial = 1:nReps
    disp(['iTrial = ', num2str(iTrial)])
 end
 disp('End of block');
-
-%% ACQUIRE INITIAL PATCHING DATA
-
-aS = acqSettings;
-aS.expNum = expNum;
-initialPatchingAcq(aS);
