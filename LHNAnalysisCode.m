@@ -26,7 +26,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [61:62];
+trialList = [8:23];
 
 % 3/15
 % Baseline: [8:15 17:47]
@@ -156,7 +156,7 @@ f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
 f.timeWindow = [5 10];
-f.yLims = [-55 -35];
+f.yLims = [];
 f.lineWidth = 1.5;
 
 medfilt = 1;

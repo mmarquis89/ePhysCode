@@ -40,8 +40,8 @@ disp(['Total time elapsed: ', num2str(toc), ' sec']);
 % odorList = odors([4]);
 
 % Create shuffled trial order
-nReps = 2;
-odorPanel = [1:3];
+nReps = 1;
+odorPanel = [1];
 
 odorList = shuffleTrials(odors(odorPanel), nReps);
 disp('Shuffle complete')
