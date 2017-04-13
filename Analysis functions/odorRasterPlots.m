@@ -1,12 +1,12 @@
 function [h] = odorRasterPlots(bl, figInfo, histOverlay, nBins)
-%================================================================================
+%============================================================================================================================
 % PLOTS RASTERS 
 % bl = trial block structure
 % figInfo = object with (optional) properties:
                 % timeWindow = [startTime, stopTime] in seconds
                 % figDims [X Y width height]
 % histOverlay = boolean specifying whether to overlay a PSTH with 1 second bins
-%================================================================================
+%============================================================================================================================
 
 % Convert spike locations to seconds and save in cell array
 spikeTimes = cell(bl.nTrials, 1);

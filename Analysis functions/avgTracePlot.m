@@ -1,12 +1,12 @@
 function [meanTrace, h] = avgTracePlot(bl, figInfo)
-%=====================================================================
+%============================================================================================================================
 % PLOT AVERAGE TRACES
 % bl = trial block structure
 % figInfo = object with (optional) properties:
-                % timeWindow = [startTime, stopTime] in seconds 
-                % figDims [X Y width height]
-                % yLims [yMin, yMax]
-%======================================================================
+%                 timeWindow = [startTime, stopTime] in seconds 
+%                 figDims [X Y width height]
+%                 yLims [yMin, yMax]
+%============================================================================================================================
 
 % Get correct trace data and y-axis labels
 if strcmp(bl.ampMode, 'Vclamp')

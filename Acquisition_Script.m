@@ -2,11 +2,11 @@ setLED(5)
 %%
 expNum = 1; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
-Istep = [-1.5];
+Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'2-Butanone_e-2', 'GeranylAcetate_e-2', '3-Hexanol_e-2', 'ParaffinOil'};
+odors = {'cVA_e-2', 'ACV_e-2', 'Farnesol_e-2', 'ParaffinOil'};
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -18,7 +18,7 @@ if numel(dList) < 10
 else
     disp('Too many trials for automatic deletion');
 end
-
+ 
 %% ACQUIRE TRACE
 
 traceDuration = 10; % Time to acquire in seconds
@@ -41,7 +41,7 @@ disp(['Total time elapsed: ', num2str(toc), ' sec']);
 
 % Create shuffled trial order
 nReps = 1;
-odorPanel = [1];
+odorPanel = [1:4];
 
 odorList = shuffleTrials(odors(odorPanel), nReps);
 disp('Shuffle complete')
@@ -74,10 +74,10 @@ disp('End of block');
 
 %% RUN OPTO STIM TRIAL(S)
 
-optoDuration = [6 3 6];
-LEDpower = 100; % 1-100
-dutyCycle = 100; % 1-100
-odorPanel = [1];
+optoDuration = [1 5 9];
+LEDpower = 3; % 1-100
+dutyCycle = 1; % 1-100
+odorPanel = [2];
 nReps = 1;
 
 % Make sure opto and trial durations sum to the same number
@@ -95,6 +95,7 @@ for iFold = 1
     aS.Istep = Istep;
     aS.Ihold = Ihold;
     aS.altStimParam = dutyCycle;
+    aS.stepStartTime = 4;
 end
 
 % Setup odor trials with alternating light stim (opto on second trial)
