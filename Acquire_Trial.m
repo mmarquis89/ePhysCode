@@ -33,6 +33,7 @@ function [data] = Acquire_Trial(acqSettings)
     trialDuration = acqSettings.trialDuration;
     altStimDuration = acqSettings.altStimDuration;
     altStimType = acqSettings.altStimType;
+    altStimParam = acqSettings.altStimParam;
     valveID = acqSettings.valveID;
     Ihold = acqSettings.Ihold;
     Istep = acqSettings.Istep;
@@ -89,21 +90,35 @@ function [data] = Acquire_Trial(acqSettings)
                 iontoStim = ones(sampRate * altStimDuration(2), 1);
                 postIonto = zeros(sampRate * altStimDuration(3), 1);
                 altStimOut = [preIonto; iontoStim; postIonto];
-                altStimOut(end) = 0;
-            case 'opto'
-                % Optogenetic stimulus setup
+                altStimOut(end) = 0; % Make sure stim is off at the end
+            case 'opto'                
+                % Check to make sure LED duty cycle parameter is valid
+                if isempty(altStimParam)
+                   disp('Warning: no LED duty cycle parameter provided...using a 100% duty cycle')
+                   dutyCycle = 100;
+                elseif altStimParam < 1 || altStimParam > 100
+                   disp('Warning: invalid LED duty cycle parameter provided...using a 100% duty cycle')
+                   dutyCycle = 100;
+                else
+                    dutyCycle = altStimParam;
+                end
+                % Optogenetic stimulus setup          
                 preOpto = zeros(sampRate * altStimDuration(1), 1);
-                optoStim = ones(sampRate * altStimDuration(2), 1);
+                optoStim_pre = zeros(sampRate * altStimDuration(2), 1);
+                optoStim = optoStim_pre;
+                for iSamp = 1:100:length(optoStim_pre)
+                    optoStim(iSamp:iSamp + dutyCycle - 1) = 1;
+                end
                 postOpto = zeros(sampRate * altStimDuration(3), 1);
                 altStimOut = [preOpto; optoStim; postOpto];
-                altStimOut(end) = 0;
+                altStimOut(end) = 0; % Make sure stim is off at the end
             case 'eject'
                 % Pressure ejection setup
                 preEject = zeros(sampRate * altStimDuration(1), 1);
                 ejectStim = ones(sampRate * altStimDuration(2), 1);
                 postEject = zeros(sampRate * altStimDuration(3), 1);
                 altStimOut = [preEject; ejectStim; postEject];
-                altStimOut(end) = 0;
+                altStimOut(end) = 0; % Make sure stim is off at the end
             otherwise 
                 disp('Warning: invalid altStimType. Running trial with no alternate stimulus');
         end
@@ -179,8 +194,7 @@ function [data] = Acquire_Trial(acqSettings)
     [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, rawAcqData, trialNum);
     
     % Move camera files from temp directory to local and network folders
-    savePath = ['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/E', num2str(acqSettings.expNum), '_T', num2str(trialNum), '/'];
-    
+    savePath = ['C:/Users/Wilson Lab/Dropbox (HMS)/Data/_Movies/', data.date, '/E', num2str(acqSettings.expNum), '_T', num2str(trialNum), '/'];
     
     % Create specific save directory if it doesn't already exist
     if ~isdir(savePath)
@@ -196,13 +210,6 @@ function [data] = Acquire_Trial(acqSettings)
        errorFile = fopen([savePath, 'frameCountError.txt'], 'wt');
        fprintf(errorFile, errorMsg);
        fclose('all');
-    end
-    
-    % If necessary, add directory path to log file for later backup
-    if ~isdir(['C:/Users/Wilson Lab/Documents/MATLAB/Data/_Movies/', data.date, '/'])
-        pathLog = fopen('C:/Users/Wilson Lab/Documents/MATLAB/Data/_Server backup logs/PendingBackup.txt', 'a');
-        fprintf(pathLog, ['\n_Movies/', data.date]);
-        fclose('all');
     end
     
     % Move images
@@ -273,7 +280,7 @@ function [data] = Acquire_Trial(acqSettings)
     figure(3); clf; hold on
     set(gcf, 'Position', [1250 40 620 400], 'Color', [1 1 1]);
     set(gca, 'LooseInset', get(gca, 'TightInset'));
-    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data\',data.date, [data.date, '_E', num2str(data.expNum), '_Rinputs.mat']), 'Rins');
+    load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\',data.date, [data.date, '_E', num2str(data.expNum), '_Rinputs.mat']), 'Rins');
     plot(1:length(Rins), Rins, 'LineStyle', 'none', 'Marker', 'o');
     xlim([0, length(Rins)+1]);
     xlabel('Trial');

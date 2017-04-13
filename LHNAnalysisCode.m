@@ -1,10 +1,7 @@
 
 %% LOAD EXPERIMENT
 
-% Start background process to backup all data that is at least a day old
-backupLogTransfer();
-
-expData = loadExperiment('2017-Apr-03', 1);
+expData = loadExperiment('2017-Apr-09', 1);
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -29,9 +26,9 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [102:103];
+trialList = [61:62];
 
-% 3/12
+% 3/15
 % Baseline: [8:15 17:47]
 % DA: [48:49 53:72]
 
@@ -130,7 +127,7 @@ f = figInfo;
 f.figDims = [10 300 1900 500];
 f.timeWindow = [3 11];
 f.lineWidth = 1;
-f.yLims = [-50 -20];
+f.yLims = [-40 -10];
 
 medfilt = 0;
 offset = 0;
@@ -142,7 +139,7 @@ groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(nu
 f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
-title(['ACV e-2, LED power = 100%'])
+title(['ACV e-3 + 1uM TTX, LED power = 100%, Duty Cycle = 100%'])
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -159,7 +156,7 @@ f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
 f.timeWindow = [5 10];
-f.yLims = [-45 -25];
+f.yLims = [-55 -35];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -183,24 +180,6 @@ ax.XColor = 'k';
 ax.YColor = 'k';
 ax.FontSize = 16;
 
-
-%% Calculate input resistances
-rate = bl.sampRate;
-Istep = 1;
-calcWin = 0.2;
-stepStart = 1; % Note hardcoded value
-stepLength = 1; % Note hardcoded value
-
-inputResistances = [];
-inputResistances(1,1) = calcRinput(avgTraces(1,:), rate, Istep, stepStart, stepLength, calcWin);
-%     inputResistances(2,1) = calcRinput(avgTraces(2,:), sR, Istep, stepStart, stepLength, calcWin);
-stepStart = 9.1;
-stepLength = 0.5;
-inputResistances(1,2) = calcRinput(avgTraces(1,:), rate, Istep, stepStart, stepLength, calcWin);
-%     inputResistances(2,2) = calcRinput(avgTraces(2,:), sR, Istep, stepStart, stepLength, calcWin);
-stepStart = 12.5;
-inputResistances(1,3) = calcRinput(avgTraces(1,:), rate, Istep, stepStart, stepLength, calcWin);
-%     inputResistances(2,3) = calcRinput(avgTraces(2,:), sR, Istep, stepStart, stepLength, calcWin);
 
 %% OVERLAY MEAN TRACES FOR A SINGLE ODOR ACROSS BLOCKS
 f = figInfo;
@@ -290,25 +269,21 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Apr_03_Example_Overlay_ACV_100_ShortStim';
-savefig(h, ['C:\Users\Wilson Lab\Documents\MATLAB\Figs\', filename])
+filename = 'Apr_06_TTX_Power_100_DC_100_Ex_4';
+savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
-savefig(h, ['U:\Data Backup\Figs\', filename])
-t(2) = toc; tL{2} = 'Server save';
 if exist('f', 'var')
     set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
 else
     set(h,'PaperUnits','inches')
 end
-export_fig(['C:\Users\Wilson Lab\Documents\MATLAB\Figs\PNG files\', filename], '-png');
-t(3) = toc; tL{3} = 'Local PNG save';
-
+export_fig(['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\PNG files\', filename], '-png');
+t(2) = toc; tL{2} = 'Local PNG save';
 dispStr = '';
 for iToc = 1:length(t)
     dispStr = [dispStr, tL{iToc}, ': ', num2str(t(iToc), 2), '  '];
 end
 disp(dispStr)
-
 
 %% PLOT FREQUENCY CONTENT OF FIRST TRIAL
 
@@ -342,7 +317,7 @@ for iTrial = 1:nTrials
     % Get name of current trial
     trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];   
     disp(trialStr)
-    savePath = fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies', strDate, trialStr);
+    savePath = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate, trialStr);
     currFiles = dir(fullfile(savePath, '*.tif'));
     
     if ~isempty(currFiles) && isempty(dir(fullfile(savePath, '*.avi'))) % Make sure there's at least one image file and no .avi file already in this trial's directory
@@ -366,11 +341,11 @@ end
 
 nTrials = length(expData.expInfo);
 strDate = expData.expInfo(1).date;
-parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
+parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
 allFlow = cell(nTrials, 1);
 disp('Calculating optic flow...')
 
-if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat'])))
+if isempty(dir(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat'])))
     for iTrial = 1:nTrials
         % Get trial name
         trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
@@ -399,14 +374,14 @@ if isempty(dir(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E
     end
     
     % Save data to disk for future use
-    save(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
-    try
-        save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
-    catch
-        disp('Warning: server backup folder does not exist. Skipping server backup save.')
-    end
+    save(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+%     try
+%         save(fullfile('U:\Data Backup', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+%     catch
+%         disp('Warning: server backup folder does not exist. Skipping server backup save.')
+%     end
 else
-    load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
+    load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
 end
 
 % CREATE COMBINED PLOTTING VIDEOS
@@ -416,7 +391,7 @@ disp('Creating combined plotting videos...')
 
 for iTrial = 1:length(expData.expInfo);
         
-    parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
+    parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     strDate = expData.expInfo(1).date;
     trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
     disp(trialStr)
@@ -437,7 +412,7 @@ for iTrial = 1:length(expData.expInfo);
         trialDuration = sum(expData.expInfo(iTrial).trialduration);
         
         % Load optic flow data
-        load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
+        load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']));
         
         % Create save directory and open video writer
         if ~isdir(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']))
@@ -509,7 +484,7 @@ end
 
 % CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
 
-parentDir = 'C:\Users\Wilson Lab\Documents\MATLAB\Data\_Movies';
+parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
 strDate = expData.expInfo(1).date;
 frameRate = expData.expInfo(1).acqSettings.frameRate;
 nTrials = length(expData.expInfo);
@@ -555,7 +530,7 @@ stepLen = bl.trialInfo(1).stepLength;
 trialDuration = bl.trialInfo(1).trialduration;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
 
 % Separate out optic flow data from the current block
 blFlow = allFlow(trialList);
@@ -607,7 +582,7 @@ stepLen = bl.trialInfo(1).stepLength;
 trialDuration = bl.trialInfo(1).trialduration;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
 
 % Separate out optic flow data from the current block
 blFlow = allFlow(trialList);
@@ -666,7 +641,7 @@ stepLen = bl.trialInfo(1).stepLength;
 trialDuration = bl.trialInfo(1).trialduration;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
 
 % Separate out optic flow data from the current block
 blFlow = allFlow(trialList);
@@ -711,7 +686,7 @@ close all; h = figure(1); clf;
 sf = pcolor(xBins,yBins,myHist);
 xlabel('Average Vm (mV)');
 ylabel('Average optic flow (AU)');
-title('Feb 20 Exp #2');
+title('Apr 05 Exp #1');
 colormap([1,1,1 ; parula(max(max(myHist)))]);
 % Format figure
 sf.EdgeColor = 'none';
@@ -729,7 +704,7 @@ set(gcf, 'Position', [50 50 900 800])
 strDate = expData.expInfo(1).date;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Documents\MATLAB\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
 
 % Separate out optic flow data from the current block
 blFlow = allFlow(trialList);
