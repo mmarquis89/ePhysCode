@@ -19,7 +19,7 @@ classdef acqSettings
         sampRate = 20000;               % Input and output sampling rate for the trial
         stepStartTime = 1;              % Time in seconds from the start of the trial to begin the current step
         stepLength = 1;                 % Length of current step in seconds
-        DAQOffset = 1.5;                % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this
+        DAQOffset = 2.5;                % The amount of current the DAQ is injecting when the command is 0. Will be subtracted from current command to offset this
         altStimChan = 'port0/line12';   % The name of the output channel on the DAQ for the alternate stimulus           
         frameRate = 30;                 % The rate at which the behavior camera should acquire images during the trial.
     end
