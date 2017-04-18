@@ -15,14 +15,15 @@ function msg = makePlottingVids(expData, parentDir, flowDir, savePath)
 frameRate = expData.expInfo(1).acqSettings.frameRate;
 strDate = expData.expInfo(1).date;
 disp('Creating combined plotting videos...')
-try
+% try
     for iTrial = 1:length(expData.expInfo);
         
         strDate = expData.expInfo(1).date;
         trialStr = ['E', num2str(expData.expInfo(1).expNum), '_T', num2str(iTrial)];
         
-        disp(trialStr)        
-        if ~isempty(dir(fullfile(parentDir, strDate, trialStr, '*tif*'))) % Check to make sure is some video for this trial
+        disp(trialStr)  
+        % Check to make sure some raw video and no existing combined plotting video for this trial
+        if ~isempty(dir(fullfile(parentDir, strDate, trialStr, '*tif*'))) && isempty(dir(fullfile(savePath, [trialStr, '_*']))) 
             
             % Load movie for the current trial
             myMovie = [];
@@ -58,9 +59,10 @@ try
                 annotLines = {};
             end
             if ~isempty(blTemp.altStimDuration)
-                annotLines(end+1) = {[blTemp.altStimStartTime, blTemp.altStimLength]};
+                annotLines(end+1:end+2) = {blTemp.altStimStartTime, blTemp.altStimStartTime+blTemp.altStimLength};
+                annotColors = [0 0 0; 1 0 1; 1 0 1];
             else
-                annotColors = [0 0 0; 0 1 0];
+                annotColors = [0 0 0];
             end
             
             % Create and save each frame
@@ -112,8 +114,8 @@ try
         end%if
     end%for
     msg = 'Combined plotting videos created successfully!';
-catch
-    msg = ['Error - video making failed on trial #', num2str(iTrial)];
-end%try
+% catch
+%     msg = ['Error - video making failed on trial #', num2str(iTrial)];
+% end%try
 
 end%function

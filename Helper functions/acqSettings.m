@@ -14,6 +14,7 @@ classdef acqSettings
         valveID                    % A number from 1-4 indicating which valve to use if an odor stimulus is delivered (use '[]' if no stim)
         Istep                      % The size of the current step to use at the beginning of the trial in pA. [] will skip the step.
         Ihold = 0                  % The holding current in pA to constantly inject into the cell
+        metadata = struct()        % A spare parameter consisting of a struct in which to store miscellaneous metadata that is not part of the code (e.g. LED power)
         
         % Hardcoded parameters
         sampRate = 20000;               % Input and output sampling rate for the trial

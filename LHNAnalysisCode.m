@@ -1,7 +1,8 @@
 
 %% LOAD EXPERIMENT
-
-expData = loadExperiment('2017-Apr-09', 1);
+disp('Loading experiment...');
+expData = loadExperiment('2017-Apr-14', 1);
+disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
 blockLists = {12:59 75:91 122:155 185:267};
@@ -26,7 +27,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [8:23];
+trialList = [69:70];
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -73,22 +74,22 @@ disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [5 10];
-f.yLims = [-53  -40];
+f.timeWindow = [2 12];
+f.yLims = [-60 -10];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
-f.title = ['Trial #', num2str(bl.trialList(1)), ' - ', ...
-                regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')]; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
+f.title = 'ACV e-2, Power = 100%, Duty cycle = 100% +ND25+ND25+ND50';%['Trial #', num2str(bl.trialList(1)), ' - ', ...
+%                 regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')]; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
 %regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')];
-f.figLegend = {};
+f.figLegend = {'Control', '+LED'};
 
 traceData = [bl.scaledOut']; % rows are traces
-traceColors = [0,0,1;1,0,0]; % n x 3 RGB array
+traceColors = repmat([0,0,1;1,0,0], bl.nTrials/2, 1); % n x 3 RGB array
 
-annotLines = {[bl.stimOnTime, bl.stimOnTime+bl.stimLength]}; % cell array of xLocs for annotation lines
-annotColors = [0,0,0]; % m x 3 RGB array for each annotation line
+annotLines = {[bl.stimOnTime, bl.stimOnTime+bl.stimLength], bl.altStimStartTime, bl.altStimStartTime+bl.altStimLength}; % cell array of xLocs for annotation lines
+annotColors = [0,0,0;1 0 1;1 0 1]; % m x 3 RGB array for each annotation line
 
 % Plot traces
 h = figure(1); clf; hold on;
@@ -105,21 +106,22 @@ ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
-f.timeWindow = [3 11];
+f.timeWindow = [2 12];
 f.lineWidth = 1;
-f.yLims = [-40 -10];
+f.yLims = [-45 -35];
 
 medfilt = 0;
 offset = 0;
 
 % Specify trial groups
-traceGroups = [1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = repmat([1; 2], bl.nTrials/2, 1);%[1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(numel(trialList));
 f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
-title(['ACV e-3 + 1uM TTX, LED power = 100%, Duty Cycle = 100%'])
+
+title(['Trial-averaged +TTX — Power = 30%, Duty Cycle = 100%'])
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -136,7 +138,7 @@ f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
 f.timeWindow = [5 10];
-f.yLims = [];
+f.yLims = [-55 -30];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -249,7 +251,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Apr_06_TTX_Power_100_DC_100_Ex_4';
+filename = 'Apr_14_LED_Vs_Rinput_Plot';
 savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
@@ -287,55 +289,62 @@ plot(fValsV, 10*log10(pfftC));
 title('Current'); xlabel('Frequency (Hz)'); ylabel('PSD(dB)'); xlim([-300 300]);
 ylim([-100 0]);
 
-%% CREATE MOVIES FROM .TIF FILES
-parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-msg = makeVids(expData, parentDir);
-disp(msg);
+%% VIDEO PROCESSING
+    %% CREATE MOVIES FROM .TIF FILES
+    parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
+    msg = makeVids(expData, parentDir);
+    disp(msg);
 
-% CALCULATE OR LOAD MEAN OPTICAL FLOW
-strDate = expData.expInfo(1).date;
-parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-savePath = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
+    %% CALCULATE OR LOAD MEAN OPTICAL FLOW
+    strDate = expData.expInfo(1).date;
+    parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
+    savePath = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
 
-if isempty(dir(savePath))
-    disp('Calculating optic flow...')
-    allFlow = opticFlowCalc(expData, parentDir, savePath);
-    disp('Optic flow calculated successfully')
-else
-    disp('Loading optic flow...')
-    load(savePath);
-    disp('Optic flow data loaded')
-end
+    if isempty(dir(savePath))
+        disp('Calculating optic flow...')
+        allFlow = opticFlowCalc(expData, parentDir, savePath);
+        disp('Optic flow calculated successfully')
+    else
+        disp('Loading optic flow...')
+        load(savePath);
+        disp('Optic flow data loaded')
+    end
 
-% CREATE COMBINED PLOTTING VIDEOS
-strDate = expData.expInfo(1).date;
-parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
-savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
+    %% CREATE COMBINED PLOTTING VIDEOS
+    strDate = expData.expInfo(1).date;
+    parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
+    flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
+    savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
-msg = makePlottingVids(expData, parentDir, flowDir, savePath);
-disp(msg);
+    msg = makePlottingVids(expData, parentDir, flowDir, savePath);
+    disp(msg);
 
-% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
-parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-msg = concatenateVids(expData, parentDir);
-disp(msg);
+    %% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
+    parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
+    msg = concatenateVids(expData, parentDir);
+    disp(msg);
 
-%% ZIP RAW VIDEO FRAMES
-strDate = expData.expInfo(1).date;
-parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
+    %% ZIP RAW VIDEO FRAMES
+    strDate = expData.expInfo(1).date;
+    parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
 
-zipFolders = dir(fullfile(parentDir, '*_T*'));
-zip(fullfile(parentDir,'rawVidData')); 
+    zipFolders = dir(fullfile(parentDir, '*_T*'));
+    zipPaths = strcat([parentDir, '\'], {zipFolders.name});
+    disp('Zipping raw video data...');
+    zip(fullfile(parentDir,'rawVidData'), zipPaths); 
+    disp('Zipping completed');
+    
+    %% DELETE RAW VIDEO DATA AFTER ARCHIVING
 
-%% DELETE RAW VIDEO DATA AFTER ARCHIVING
-
-strDate = expData.expInfo(1).date;
-parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
-delFolders = dir(fullfile(parentDir, '*_T*'));
-for iFolder = 1:length(delFolders)
-%     rmdir(fullfile(parentDir, delFolders(iFolder).name), s);
-end
+    strDate = expData.expInfo(1).date;
+    parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
+    delFolders = dir(fullfile(parentDir, '*_T*'));
+    disp('Deleting raw video frames...');
+    for iFolder = 1:length(delFolders)
+         disp(delFolders(iFolder).name);
+         rmdir(fullfile(parentDir, delFolders(iFolder).name), 's');
+    end
+    disp('Raw video frames deleted');
 
 %% PLOT Vm VS. OPTIC FLOW ACROSS TRIALS
 
