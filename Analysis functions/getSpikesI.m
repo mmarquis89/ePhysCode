@@ -1,9 +1,9 @@
 function spikes = getSpikesI(bl, posThresh)
-%=============================================================================================================
+%============================================================================================================================
 % Use current traces to identify spike times
 % Peaks must be at least 5 ms apart
 % posThresh: Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
-%=============================================================================================================
+%============================================================================================================================
 
 % Center current at 0 and invert since initial peaks are negative
 normCurrent = bl.current - mean(median(bl.current));

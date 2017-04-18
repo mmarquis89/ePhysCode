@@ -1,5 +1,5 @@
 function [plotHandle] = plotTraces(plotHandle, bl, figInfo, traceData, traceColors, annotLines, annotColors)
-% =============================================================================================================
+% ===========================================================================================================================
 % Takes a figure or axes handle, formats it using the figInfo object and block structure, and plots one 
 % or more traces and/or vertical marker lines
 % plotHandle = handle of the figure or axes to plot in
@@ -17,10 +17,8 @@ function [plotHandle] = plotTraces(plotHandle, bl, figInfo, traceData, traceColo
 % annotLines: cell array with the xLoc(s) for each stimulus marker line
     % Use a single number to plot a vertical line at the xLoc. 
     % Use a 2-number vector for a horizontal line above the plot between the pair of xLocs.
-% annotLineType: character vector with one letter for each xLoc in annotLines
-
-% annotColors: the color for each annotation line. xLocs that are part of a horizontal line must be same color
-% =============================================================================================================
+% annotColors: nx3 vector with the colors for each annotation line.
+% ===========================================================================================================================
 
 % Initial variable setup
 smpRt = bl.sampRate;    

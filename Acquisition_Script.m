@@ -18,7 +18,7 @@ if numel(dList) < 10
 else
     disp('Too many trials for automatic deletion');
 end
-
+ 
 %% ACQUIRE TRACE
 
 traceDuration = 10; % Time to acquire in seconds
@@ -95,6 +95,8 @@ for iFold = 1
     aS.Istep = Istep;
     aS.Ihold = Ihold;
     aS.altStimParam = dutyCycle;
+    aS.stepStartTime = 1;
+    aS.metadata.LEDpower = LEDpower;
 end
 
 % Setup odor trials with alternating light stim (opto on second trial)
