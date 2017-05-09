@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-Apr-14', 1);
+expData = loadExperiment('2017-May-08', 2);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -27,7 +27,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [69:70];
+trialList = [16];
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -67,7 +67,6 @@ disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
     %% Estimate access resistance
     bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate);
     disp(['Estimated Raccess = ', num2str(bl.Raccess)])
-
 %% BASIC TRACE PLOTTING
 
 % Set parameters
@@ -75,12 +74,12 @@ f = figInfo;
 f.figDims = [10 300 1900 500];
 
 f.timeWindow = [2 12];
-f.yLims = [-60 -10];
+f.yLims = [-70 -25];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
-f.title = 'ACV e-2, Power = 100%, Duty cycle = 100% +ND25+ND25+ND50';%['Trial #', num2str(bl.trialList(1)), ' - ', ...
+f.title = 'ACV e-2, Power = 5%, Duty cycle = 100%  +ND25+ND25+ND50';%['Trial #', num2str(bl.trialList(1)), ' - ', ...
 %                 regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')]; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
 %regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')];
 f.figLegend = {'Control', '+LED'};
@@ -103,6 +102,23 @@ ax.XColor = 'k';
 ax.YColor = 'k';
 ax.FontSize = 16;
 
+    %% Plot Rinputs vs. LED duty cycle
+h = figure(1); clf
+Rinputs = [bl.trialInfo.Rin];
+LEDpowers = [1:4, 10 25 50 100];
+plot(LEDpowers, Rinputs, '.', 'MarkerSize', 40);
+
+title('Power = 5%, +ND25+ND25+ND50');
+xlabel('LED duty cycle');
+ylabel('Input resistance (GOhm)');
+
+set(gcf, 'Color', [1 1 1]);
+% Format figure
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
@@ -137,8 +153,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [5 10];
-f.yLims = [-55 -30];
+f.timeWindow = [5 11];
+f.yLims = [-55 -45];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -154,7 +170,7 @@ for iOdor = valveList;
     f.figLegend{iOdor} = strrep(odors{find(valveList == iOdor)},'_','\_');
 end
 f.figLegend = f.figLegend(~cellfun('isempty',f.figLegend));
-groupColors = [0 0 1; 0 .75 0; 1 0 0; 1 .5 0; .85 0 .85]; %jet(nOdors);
+groupColors = [0 0 1; 0 .75 0; 1 0 0; 1 .5 0; .85 0 .85; .5 0 .5; 1 .5, 0]; %jet(nOdors);
 [avgTraces, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 ax = gca;
 ax.LineWidth = 3;
@@ -195,9 +211,11 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = [1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = 7%[1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
-spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
+% spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
+spikes = getSpikesSimple(bl, posThresh(1), invert); % Use simple spike detection if spikes are very large
+
 bl.spikes = spikes;                     % Save to data structure
 bl.normCurrent = bl.current - mean(median(bl.current));
 
@@ -212,14 +230,16 @@ figure(4), hist(allPks,30); title(['n = ', num2str(length(allPks))]);
 figure(6);clf;hold all
 for iTrial = 1:size(bl.spikes, 2)
     locs = bl.spikes(iTrial).locs;
-    if ~isempty(locs)
+    if ~isempty(locs)'
         for iSpk = 1:length(locs)
-            plot(bl.normCurrent(locs(iSpk)-(.002*bl.sampRate):locs(iSpk)+(.006*bl.sampRate), iTrial))
+            if locs(iSpk) > .002*bl.sampRate && locs(iSpk) < bl.sampRate*(sum(bl.trialDuration)-.006)
+                plot(bl.normCurrent(locs(iSpk)-(.002*bl.sampRate):locs(iSpk)+(.006*bl.sampRate), iTrial))
+            end
         end
     end
 end
 
-%% Plot inverted current trace(s) with a marker on each peak
+%% Plot current trace(s) with a marker on each peak
 h = figure(7);clf;hold on
 f = figInfo;
 f.figDims = [10 50 1650 400];
@@ -232,18 +252,24 @@ if bl.nTrials > 1
 else
     cm = [0 0 1];
 end
-traceData = bl.normCurrent';
-plotTraces(h, bl, f, -traceData, cm, annotLines, annotColors);
+if invert
+    traceData = -bl.normCurrent';
+    disp('invert')
+else
+    traceData = bl.normCurrent';
+    disp('No invert');
+end
+plotTraces(h, bl, f, traceData, cm, annotLines, annotColors);
 for iTrial = 1:bl.nTrials
     plot([bl.spikes(iTrial).locs]./bl.sampRate, [bl.spikes(iTrial).peakVals], 'or')
 end
 
 %% PLOT SPIKE RASTERS
 f = figInfo;
-f.timeWindow = [6 9];
+f.timeWindow = [5 11];
 f.figDims = [10 50 1500 900];
-histOverlay = 0;
-nBins = (diff(f.timeWindow)+1)*6;
+histOverlay = 1;
+nBins = (diff(f.timeWindow)+1)*5;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -251,7 +277,7 @@ suptitle('');
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Apr_14_LED_Vs_Rinput_Plot';
+filename = 'May_04_Rasters';
 savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
@@ -290,12 +316,12 @@ title('Current'); xlabel('Frequency (Hz)'); ylabel('PSD(dB)'); xlim([-300 300]);
 ylim([-100 0]);
 
 %% VIDEO PROCESSING
-    %% CREATE MOVIES FROM .TIF FILES
+    % CREATE MOVIES FROM .TIF FILES
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     msg = makeVids(expData, parentDir);
     disp(msg);
 
-    %% CALCULATE OR LOAD MEAN OPTICAL FLOW
+    % CALCULATE OR LOAD MEAN OPTICAL FLOW
     strDate = expData.expInfo(1).date;
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     savePath = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
@@ -309,8 +335,8 @@ ylim([-100 0]);
         load(savePath);
         disp('Optic flow data loaded')
     end
-
-    %% CREATE COMBINED PLOTTING VIDEOS
+    
+    % CREATE COMBINED PLOTTING VIDEOS
     strDate = expData.expInfo(1).date;
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
@@ -319,32 +345,36 @@ ylim([-100 0]);
     msg = makePlottingVids(expData, parentDir, flowDir, savePath);
     disp(msg);
 
-    %% CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
+   % CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     msg = concatenateVids(expData, parentDir);
     disp(msg);
 
-    %% ZIP RAW VIDEO FRAMES
+    % ZIP RAW VIDEO FRAMES
     strDate = expData.expInfo(1).date;
     parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
 
-    zipFolders = dir(fullfile(parentDir, '*_T*'));
+    zipFolders = dir(fullfile(parentDir, ['*', num2str(expData.expInfo(1).expNum), '_T*']));
     zipPaths = strcat([parentDir, '\'], {zipFolders.name});
     disp('Zipping raw video data...');
-    zip(fullfile(parentDir,'rawVidData'), zipPaths); 
+    zip(fullfile(parentDir,['rawVidData_E', num2str(expData.expInfo(1).expNum)]), zipPaths); 
     disp('Zipping completed');
     
     %% DELETE RAW VIDEO DATA AFTER ARCHIVING
-
     strDate = expData.expInfo(1).date;
     parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
-    delFolders = dir(fullfile(parentDir, '*_T*'));
-    disp('Deleting raw video frames...');
-    for iFolder = 1:length(delFolders)
-         disp(delFolders(iFolder).name);
-         rmdir(fullfile(parentDir, delFolders(iFolder).name), 's');
-    end
-    disp('Raw video frames deleted');
+    delFolders = dir(fullfile(parentDir, ['*', num2str(expData.expInfo(1).expNum), '_T*']));
+    zipDir = dir(fullfile(parentDir,['rawVidData_E', num2str(expData.expInfo(1).expNum), '.zip']));
+    if isempty(zipDir)
+        disp('Error — no zipped folder was found for this experiment');
+    else
+        disp('Deleting raw video frames...');
+        for iFolder = 1:length(delFolders)
+            disp(delFolders(iFolder).name);
+            rmdir(fullfile(parentDir, delFolders(iFolder).name), 's');
+        end
+        disp('Raw video frames deleted');  
+    end%if
 
 %% PLOT Vm VS. OPTIC FLOW ACROSS TRIALS
 
@@ -512,7 +542,7 @@ close all; h = figure(1); clf;
 sf = pcolor(xBins,yBins,myHist);
 xlabel('Average Vm (mV)');
 ylabel('Average optic flow (AU)');
-title('Apr 05 Exp #1');
+title('');
 colormap([1,1,1 ; parula(max(max(myHist)))]);
 % Format figure
 sf.EdgeColor = 'none';
@@ -524,8 +554,108 @@ ax.FontSize = 12;
 set(gcf, 'Color', [1 1 1]);
 set(gcf, 'Position', [50 50 900 800])
 
+%% PLOT 2D HISTOGRAM OF SPIKE RATE VS. OPTIC FLOW FOR CURRENT TRIAL BLOCK
 
-%% PLOT SPIKE RATE VS. OPTIC FLOW
+% Load parameters
+strDate = expData.expInfo(1).date;
+sR = bl.sampRate;
+fR = bl.trialInfo(1).acqSettings.frameRate;
+stepStart = bl.trialInfo(1).stepStartTime;
+stepLen = bl.trialInfo(1).stepLength;
+trialDuration = bl.trialInfo(1).trialduration;
+nBins = sum(trialDuration)*2.5;
+binLength = sum(bl.trialDuration)./nBins;
+
+% Load optic flow data
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+
+% Separate out optic flow data from the current block
+blFlow = allFlow(trialList);
+
+plotSpikes = [];
+plotFlow = [];
+for iTrial = 1:bl.nTrials
+    
+    % Load spikes and optic flow for the current trial
+    currSpikes = bl.spikes(iTrial).locs;
+    currFlow = blFlow{iTrial};
+
+    % Convert spikes to seconds and calculate time points for optic flow
+    secSpikes = currSpikes ./ bl.sampRate;
+    secFlow = (1:length(currFlow)) * (1/bl.frameRate);
+        
+    % Remove flow data from the test step and odor response period
+    stepFrames = secFlow > stepStart & secFlow < (stepStart + stepLen);
+    odorFrames = secFlow > trialDuration(1) & secFlow < sum(trialDuration(1:2));
+    rmFrames = logical(stepSpikes+odorSpikes);
+    currFlow(rmFrames) = [];
+    secFlow(rmFrames) = [];
+    
+    % Remove spikes from the test step and odor response period
+    stepSpikes = secSpikes > stepStart & secSpikes < (stepStart+stepLen);
+    odorSpikes = secSpikes > trialDuration(1) & secSpikes < sum(trialDuration(1:2));
+    rmSpikes = logical(stepSpikes+odorSpikes);
+    secSpikes(rmSpikes) = [];
+    
+    % Calculate spike rate within the specified bins
+    hst = histogram(secSpikes, nBins);
+    histSpikes = hst.Values;
+    binEdges = hst.BinEdges;
+    lowerEdges = hst.BinEdges(1:end-1);
+    upperEdges = hst.BinEdges(2:end);
+    
+    % Calculate mean optic flow within the bins
+    histFlow = zeros(1,nBins);
+    for iBin = 1:nBins
+       histFlow(iBin) = mean(currFlow(secFlow>binEdges(iBin) & secFlow < binEdges(iBin+1))); 
+    end
+    
+    
+    stepBins = upperEdges > stepStart & lowerEdges < (stepStart+stepLen);
+    odorBins = upperEdges > trialDuration(1) & lowerEdges < sum(trialDuration(1:2));
+    rmBins = logical(stepBins+odorBins);
+    histSpikes(rmBins) = [];
+    histFlow(rmBins) = [];
+    
+    % Add new points to plotting data
+    plotSpikes = [plotSpikes; histSpikes'];
+    plotFlow = [plotFlow; histFlow'];
+
+end%for
+
+
+% Make 2D histogram
+histData = [plotSpikes, plotFlow];
+nBins = 10;
+[N,C] = hist3(histData, [nBins, nBins]);
+myHist = N';
+myHist(size(N,1) + 1, size(N,2) + 1) = 0; % Pad edges w/zeros to for pcolor() plotting
+xBins = linspace(min(histData(:,1)*0.99),max(histData(:,1)*1.01),size(N,1)+1);
+yBins = linspace(min(histData(:,2)*0.99),max(histData(:,2)*1.01),size(N,1)+1);
+
+limit = mean(myHist(:))*1.5
+myHist(myHist>limit) = limit;
+
+% Plot pseudocolor image of histogram data
+close all; h = figure(1); clf;
+sf = pcolor(xBins,yBins,myHist);
+xlabel('Spike Rate (AU)');
+ylabel('Average optic flow (AU)');
+title('Feb 20, Exp 1');
+colormap([1,1,1 ; parula(max(max(myHist)))]);
+
+% Format figure
+sf.EdgeColor = 'none';
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 12;
+set(gcf, 'Color', [1 1 1]);
+set(gcf, 'Position', [50 50 900 800])
+
+
+%% PLOT SPIKE RATE VS. OPTIC FLOW FOR CURRENT TRIAL BLOCK
 
 strDate = expData.expInfo(1).date;
 
@@ -545,28 +675,24 @@ for iTrial = 1:bl.nTrials
     secSpikes = currSpikes ./ bl.sampRate;
     secFlow = (1:length(currFlow)) * (1/bl.frameRate);
     
-    figure(iTrial); clf; hold on
-    set(gcf, 'Position', [100 100 1500 400])
+%     figure(iTrial); clf; hold on
+%     set(gcf, 'Position', [100 100 1500 400])
     nBins = sum(bl.trialDuration);
     binLength = sum(bl.trialDuration)./nBins;
     
-    yyaxis left
+%     yyaxis left
     h = histogram(secSpikes, nBins);
     data = [data, h.Values];
     for iBin = 1:nBins
         binnedFlow(iBin) = mean(currFlow((secFlow >=(iBin - 1)*binLength)+(secFlow < iBin*binLength)==2));
     end
     concatFlow = [concatFlow, binnedFlow]; 
-    yyaxis right
-    plot([0:binLength:sum(bl.trialDuration)-binLength]+binLength/2, binnedFlow); ylim([0 1.5]);
+%     yyaxis right
+%     plot([0:binLength:sum(bl.trialDuration)-binLength]+binLength/2, binnedFlow); ylim([0 1.5]);
 end
 
 figure(1); clf;
 plot(concatFlow, data, 'o');
-
-
-
-clear all
 
 %% CALCULATE TOTAL DURATION OF EXPERIMENT
 

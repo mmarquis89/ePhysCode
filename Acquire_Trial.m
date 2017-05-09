@@ -127,13 +127,14 @@ function [data] = Acquire_Trial(acqSettings)
     end
     
     % Set up amplifier external current command
+    commandScalar = 4; % The number to divide desired command in pA by to get the correct voltage output
     if ~isempty(Istep)
-        preStepOut = ones(sampRate*data.stepStartTime,1) * Ihold/2;
-        stepOut = (ones(sampRate*data.stepLength, 1) * (Ihold + Istep)/2);
-        postStepOut = ones(sampRate * (sum(trialDuration) - (data.stepStartTime + data.stepLength)), 1) * Ihold/2;
-        Icommand = [preStepOut; stepOut; postStepOut] - data.DAQOffset/2;
+        preStepOut = ones(sampRate*data.stepStartTime,1) * Ihold/commandScalar;
+        stepOut = (ones(sampRate*data.stepLength, 1) * (Ihold + Istep)/commandScalar);
+        postStepOut = ones(sampRate * (sum(trialDuration) - (data.stepStartTime + data.stepLength)), 1) * Ihold/commandScalar;
+        Icommand = [preStepOut; stepOut; postStepOut] - data.DAQOffset/commandScalar;
     else
-        Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/2) - data.DAQOffset/2;
+        Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/commandScalar) - data.DAQOffset/commandScalar;
     end
     
     % Set up camera trigger output
@@ -228,7 +229,7 @@ function [data] = Acquire_Trial(acqSettings)
     figure (1);clf; hold on
     set(gcf,'Position',[10 550 1850 400],'Color',[1 1 1]);
     set(gca,'LooseInset',get(gca,'TightInset'))
-    plot(time(.05*sampRate:end), scaledOut(.05*sampRate:end));
+    plot(time(.05*sampRate:end), smooth(scaledOut(.05*sampRate:end),1));
     if strcmp(data.scaledOutMode, 'V')
         ylabel('Vm (mV)');
     elseif strcmp(data.scaledOutMode, 'I')
@@ -255,7 +256,7 @@ function [data] = Acquire_Trial(acqSettings)
     set(gcf,'Position',[10 50 1850 400],'Color',[1 1 1]);
     set(gca,'LooseInset',get(gca,'TightInset'))
     if strcmp(data.scaledOutMode, 'V')
-        plot(time(.05*sampRate:end), current(.05*sampRate:end)); 
+        plot(time(.05*sampRate:end), smooth(current(.05*sampRate:end),1)); 
         ylabel('Im (pA)');
     elseif strcmp(data.scaledOutMode, 'I')
         plot(time(.05*sampRate:end), tenVm(.05*sampRate:end));
@@ -275,7 +276,13 @@ function [data] = Acquire_Trial(acqSettings)
     end
     title(['Trial Number ' num2str(trialNum) ]);
     box off;
-    
+ 
+% baseline = mean(current(sampRate:trialDuration(1)*sampRate));
+% phase1 = mean(current(trialDuration(1)*sampRate:sum(trialDuration(1:2))*sampRate));
+% phase2 = mean(current(sum(trialDuration(1:2))*sampRate:(sum(trialDuration(1:2))+1)*sampRate));
+% titleStr = ['Phase 1 = ', num2str(round(abs(phase1-baseline),1)), ' pA, Phase 2 = ', num2str(round(abs(phase2-baseline),2)), ' pA'];
+% title(titleStr);  
+%  disp(titleStr);
     % Plot input resistance across experiment
     figure(3); clf; hold on
     set(gcf, 'Position', [1250 40 620 400], 'Color', [1 1 1]);
