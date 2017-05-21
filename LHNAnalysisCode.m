@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-May-08', 2);
+expData = loadExperiment('2017-May-18', 1);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -27,7 +27,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [16];
+trialList = allTrials(optoControl & POtrials);
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -63,7 +63,6 @@ disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
     %% Estimate seal resistance
     bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage);
     disp(['Estimated Rseal = ', num2str(bl.Rseal)])
-
     %% Estimate access resistance
     bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate);
     disp(['Estimated Raccess = ', num2str(bl.Raccess)])
@@ -122,9 +121,9 @@ ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
-f.timeWindow = [2 12];
+f.timeWindow = [4 11];
 f.lineWidth = 1;
-f.yLims = [-45 -35];
+f.yLims = [-55 -30];
 
 medfilt = 0;
 offset = 0;
@@ -137,7 +136,7 @@ f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 
-title(['Trial-averaged +TTX — Power = 30%, Duty Cycle = 100%'])
+title(['EthylAcetate\_e-2  -  LED power = 5%, DC = 1%'])
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -153,8 +152,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [5 11];
-f.yLims = [-55 -45];
+f.timeWindow = [5 10];
+f.yLims = [-60 -15];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -211,7 +210,7 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = 7%[1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = 7; %[1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
 % spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
 spikes = getSpikesSimple(bl, posThresh(1), invert); % Use simple spike detection if spikes are very large
@@ -266,18 +265,32 @@ end
 
 %% PLOT SPIKE RASTERS
 f = figInfo;
-f.timeWindow = [5 11];
+f.timeWindow = [6 9];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*5;
+nBins = (diff(f.timeWindow)+1)*4;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
 
+%% PLOT RASTERS W/ARBITRARY GROUPING
+
+f = figInfo;
+f.timeWindow = [7 8];
+f.figDims = [10 50 1500 900];
+histOverlay = 1;
+nBins = (diff(f.timeWindow)+1)*40;
+
+rasterGroups = repmat([1; 2], bl.nTrials/2, 1);
+groupNames = {'Control', '+ LED'};
+[h] = groupedRasterPlots(bl, f, histOverlay, nBins, rasterGroups, groupNames);
+suptitle('');
+
+
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'May_04_Rasters';
+filename = 'May_18_Exp_1_TTX_Opto';
 savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
@@ -360,7 +373,7 @@ ylim([-100 0]);
     zip(fullfile(parentDir,['rawVidData_E', num2str(expData.expInfo(1).expNum)]), zipPaths); 
     disp('Zipping completed');
     
-    %% DELETE RAW VIDEO DATA AFTER ARCHIVING
+    % DELETE RAW VIDEO DATA AFTER ARCHIVING
     strDate = expData.expInfo(1).date;
     parentDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies', strDate);
     delFolders = dir(fullfile(parentDir, ['*', num2str(expData.expInfo(1).expNum), '_T*']));
@@ -695,7 +708,6 @@ figure(1); clf;
 plot(concatFlow, data, 'o');
 
 %% CALCULATE TOTAL DURATION OF EXPERIMENT
-
 startTime = expData.expInfo(1).sampleTime;
 endTime = expData.expInfo(end).sampleTime;
 
@@ -704,8 +716,21 @@ expDur = expTime(4)*60 + expTime(5);
 disp(['Total experiment duration in minutes: ', num2str(expDur)])
 
 
+%%
+odorData = {expData.expInfo.odor};
+altStimData = {expData.expInfo.altStimDuration};
+nTrials = length(odorData);
 
+optoTrials = cellfun(@isequal, altStimData, repmat({[6 3 6]}, 1, nTrials));
+controlTrials = [optoTrials(2:end), 0];
+EAtrials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-2']}, 1, nTrials));
+ACVtrials = cellfun(@strcmp, odorData, repmat({['ACV_e-2']}, 1, nTrials));
+HCltrials = cellfun(@strcmp, odorData, repmat({['HCl_e-2']}, 1, nTrials));
+POtrials = cellfun(@strcmp, odorData, repmat({['ParaffinOil']}, 1, nTrials));
 
+optoControl = optoTrials | controlTrials;
+optoControl(130:end) = 0;
 
+allTrials = 1:length(expData.expInfo);
 
 

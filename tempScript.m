@@ -1,7 +1,7 @@
    
     %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-May-08', 1);
+expData = loadExperiment('2017-May-18', 1);
 disp('Experiment loaded');
 
 %% VIDEO PROCESSING
@@ -67,7 +67,7 @@ disp('Experiment loaded');
     
     %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-May-08', 2);
+expData = loadExperiment('2017-May-18', 2);
 disp('Experiment loaded');
 
 %% VIDEO PROCESSING

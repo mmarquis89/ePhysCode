@@ -6,7 +6,8 @@ Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'2-butanone_e-2', 'ACV_e-2', 'Farnesol_e-2', 'ParaffinOil'};
+odors = {'EthylAcetate_e-2', 'ACV_e-3', 'IsobutyricAcid_e-2', 'ParaffinOil'};
+
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
 
@@ -79,7 +80,7 @@ disp('End of block');
 optoDuration = [6 3 6];
 LEDpower = 5; % 1-100
 dutyCycle = 1; % 1-100
-odorPanel = [2];
+odorPanel = [1];
 nReps = 1;
 
 % Make sure opto and trial durations sum to the same number
@@ -106,7 +107,7 @@ if length(odorPanel) > 1
     odorList = shuffleTrials(odors(odorPanel), nReps);
     disp('Shuffle complete')
 else
-    odorList = odors(odorPanel);
+    odorList = repmat(odors(odorPanel), nReps,1);
 end
 nTrials = length(odorList);
 valveList = zeros(1,nTrials);
