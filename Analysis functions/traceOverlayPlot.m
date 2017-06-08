@@ -62,7 +62,7 @@ if strcmp(bl.trialInfo(1).scaledOutMode, 'I')
 else
     traceData = bl.current';
 end
-figInfo.title = {[bl.date], ['Voltage traces for trial numbers: ' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end))]};
+figInfo.title = {[bl.date], ['Current traces for trial numbers: ' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end))]};
 figInfo.yLabel = 'Current (pA)';
 plotTraces(j, bl, figInfo, traceData, traceColors, annotLines, annotColors);
 set(gca,'LooseInset',get(gca,'TightInset'))

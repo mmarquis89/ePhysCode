@@ -28,12 +28,12 @@
 %     end    
     
     % Add valve control output channels
-    s.addAnalogOutputChannel('Dev1', 0 , 'Voltage');            % Clean valve output channel
+%     s.addAnalogOutputChannel('Dev1', 0 , 'Voltage');            % Clean valve output channel
 %     s.addDigitalChannel('Dev1', 'port0/line0', 'OutputOnly');   % Pinch valve digital output channel
     
 %     s.addAnalogOutputChannel('Dev2', 0, 'Voltage');
 %     s.addAnalogOutputChannel('Dev2', 1, 'Voltage');
-    s.queueOutputData([valveOut]);
+%     s.queueOutputData([valveOut]);
     
     s.Rate = sampRate;
     x = s.startForeground();

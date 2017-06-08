@@ -1,12 +1,12 @@
 setLED(10)
 %%
-expNum = 1; 
+expNum = 3; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
-Istep = [];
-Ihold = 0;
+Istep = [-10];
+Ihold = -10;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'EthylAcetate_e-2', 'ACV_e-3', 'IsobutyricAcid_e-2', 'ParaffinOil'};
+odors = {'EthylAcetate_e-2', 'Methylcyclohexanol_e-2', 'IsobutyricAcid_e-2', 'ParaffinOil'};
 
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
@@ -22,7 +22,7 @@ end
  
 %% ACQUIRE TRACE
 
-traceDuration = 10; % Time to acquire in seconds
+traceDuration = 20; % Time to acquire in seconds
 
 for iFold = 1
     aS = acqSettings;
@@ -38,13 +38,12 @@ disp(['Total time elapsed: ', num2str(toc), ' sec']);
 
 %% RUN ODOR TRIAL(S)
 
-%Setup odor and valve list manually
-% odorList = odors([4]);
+% Setup odor and valve list manually
+% odorList = odors([1 1 2 2 3 3 4 4]);
 
-% Create shuffled trial order
+% % Create shuffled trial order
 nReps = 2;
 odorPanel = [1:4];
-
 odorList = shuffleTrials(odors(odorPanel), nReps);
 disp('Shuffle complete')
 
@@ -120,7 +119,7 @@ repValveList = repmat(valveList, [2 1]);
 repValveList = repValveList(:)';
 repOdorList = repmat(odorList, [2 1]);
 repOdorList = repOdorList(:)';
-optoDurationList = repmat({[] ; optoDuration}, length(repValveList)/2, 1);
+optoDurationList = repmat({[];optoDuration}, length(repValveList)/2, 1);
 
 % Run Trials
 nTrials = length(optoDurationList);

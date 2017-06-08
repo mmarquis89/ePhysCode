@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-May-18', 1);
+expData = loadExperiment('2017-Jun-05', 3);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -27,7 +27,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = allTrials(optoControl & POtrials);
+trialList = [34:41];%allTrials(optoControl)% & ch4Trials)
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -66,6 +66,18 @@ disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
     %% Estimate access resistance
     bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate);
     disp(['Estimated Raccess = ', num2str(bl.Raccess)])
+    %% Calculate total duration of experiment
+    startTime = expData.expInfo(1).sampleTime;
+    endTime = expData.expInfo(end).sampleTime;
+
+    expTime = endTime - startTime;
+    expDur = expTime(4)*60 + expTime(5);
+    disp(['Total experiment duration in minutes: ', num2str(expDur)])
+    %% Calculate median input resistance throughout experiment
+    parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data';
+    expName = [expData.expInfo(1).date, '_E', num2str(expData.expInfo(1).expNum)];
+    load(fullfile(parentDir, expName(1:end-3), [expName, '_Rinputs']));
+    disp(['Median Rinput throughout experiment:  ', num2str(median(Rins))]); 
 %% BASIC TRACE PLOTTING
 
 % Set parameters
@@ -101,42 +113,27 @@ ax.XColor = 'k';
 ax.YColor = 'k';
 ax.FontSize = 16;
 
-    %% Plot Rinputs vs. LED duty cycle
-h = figure(1); clf
-Rinputs = [bl.trialInfo.Rin];
-LEDpowers = [1:4, 10 25 50 100];
-plot(LEDpowers, Rinputs, '.', 'MarkerSize', 40);
-
-title('Power = 5%, +ND25+ND25+ND50');
-xlabel('LED duty cycle');
-ylabel('Input resistance (GOhm)');
-
-set(gcf, 'Color', [1 1 1]);
-% Format figure
-ax = gca;
-ax.LineWidth = 2;
-ax.XColor = 'k';
-ax.YColor = 'k';
-ax.FontSize = 16;
 %% PLOT AVG TRACE OVERLAY
 f = figInfo;
 f.figDims = [10 300 1900 500];
-f.timeWindow = [4 11];
-f.lineWidth = 1;
-f.yLims = [-55 -30];
+f.timeWindow = [4 12];
+f.lineWidth = 1.5;
+f.yLims = [];
 
 medfilt = 0;
 offset = 0;
 
 % Specify trial groups
-traceGroups = repmat([1; 2], bl.nTrials/2, 1);%[1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = repmat([1;1], bl.nTrials/2, 1);%[1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(numel(trialList));
 f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 
-title(['EthylAcetate\_e-2  -  LED power = 5%, DC = 1%'])
+odorName = strrep(bl.trialInfo(1).odor,'_','\_');
+% title([odorName, '   -  LED power = 5%, DC = 1%'])
+title('Avg of all odors, LED on second trial +7 uM TTX  -  LED power = 5%, DC = 1%');
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -152,8 +149,8 @@ ylabel('Vm (mV)');
 f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
-f.timeWindow = [5 10];
-f.yLims = [-60 -15];
+f.timeWindow = [5.5 10];
+f.yLims = [];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -263,12 +260,12 @@ for iTrial = 1:bl.nTrials
     plot([bl.spikes(iTrial).locs]./bl.sampRate, [bl.spikes(iTrial).peakVals], 'or')
 end
 
-%% PLOT SPIKE RASTERS
+%% PLOT SPIKE RASTERS FOR EACH ODOR
 f = figInfo;
-f.timeWindow = [6 9];
+f.timeWindow = [5 12];
 f.figDims = [10 50 1500 900];
-histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*4;
+histOverlay = 0;
+nBins = (diff(f.timeWindow)+1)*3;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -279,18 +276,36 @@ f = figInfo;
 f.timeWindow = [7 8];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*40;
+nBins = (diff(f.timeWindow)+1)*30;
 
 rasterGroups = repmat([1; 2], bl.nTrials/2, 1);
 groupNames = {'Control', '+ LED'};
 [h] = groupedRasterPlots(bl, f, histOverlay, nBins, rasterGroups, groupNames);
-suptitle('');
+suptitle('Farnesol');
 
+%% COUNT AVG SPIKES IN A TIME WINDOW W/ARBITRARY GROUPING
+timeWindow = [7 9];
+sampWin = timeWindow * bl.sampRate;
+groups = repmat([1; 2], bl.nTrials/2, 1);
+spikeLocs = {bl.spikes.locs};
+
+% Separate out spikes in specified time window
+windowSpikes = [];
+for iTrial = 1:length(spikeLocs)
+   windowSpikes{iTrial} = spikeLocs{iTrial} > sampWin(1) & spikeLocs{iTrial} < sampWin(2);
+end
+winSpikeCounts = cellfun(@sum, windowSpikes);
+
+% Separate spike counts for each group
+meanSpikes = [];
+for iGroup = 1:length(unique(groups))
+    meanSpikes(iGroup) = mean(winSpikeCounts(groups==iGroup))
+end
 
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'May_18_Exp_1_TTX_Opto';
+filename = 'Jun_05_Exp_2_Averaged_Odor_Responses';
 savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
@@ -305,6 +320,7 @@ for iToc = 1:length(t)
     dispStr = [dispStr, tL{iToc}, ': ', num2str(t(iToc), 2), '  '];
 end
 disp(dispStr)
+
 
 %% PLOT FREQUENCY CONTENT OF FIRST TRIAL
 
@@ -353,7 +369,7 @@ ylim([-100 0]);
     strDate = expData.expInfo(1).date;
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
-    savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
+    savePath = fullfile(parentDir, 'Combined videos', strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
     msg = makePlottingVids(expData, parentDir, flowDir, savePath);
     disp(msg);
@@ -667,7 +683,6 @@ ax.FontSize = 12;
 set(gcf, 'Color', [1 1 1]);
 set(gcf, 'Position', [50 50 900 800])
 
-
 %% PLOT SPIKE RATE VS. OPTIC FLOW FOR CURRENT TRIAL BLOCK
 
 strDate = expData.expInfo(1).date;
@@ -707,30 +722,46 @@ end
 figure(1); clf;
 plot(concatFlow, data, 'o');
 
-%% CALCULATE TOTAL DURATION OF EXPERIMENT
-startTime = expData.expInfo(1).sampleTime;
-endTime = expData.expInfo(end).sampleTime;
-
-expTime = endTime - startTime;
-expDur = expTime(4)*60 + expTime(5);
-disp(['Total experiment duration in minutes: ', num2str(expDur)])
-
-
-%%
+%% BREAK OPTO TRIALS DOWN BY ODOR
 odorData = {expData.expInfo.odor};
 altStimData = {expData.expInfo.altStimDuration};
 nTrials = length(odorData);
 
 optoTrials = cellfun(@isequal, altStimData, repmat({[6 3 6]}, 1, nTrials));
-controlTrials = [optoTrials(2:end), 0];
-EAtrials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-2']}, 1, nTrials));
-ACVtrials = cellfun(@strcmp, odorData, repmat({['ACV_e-2']}, 1, nTrials));
-HCltrials = cellfun(@strcmp, odorData, repmat({['HCl_e-2']}, 1, nTrials));
-POtrials = cellfun(@strcmp, odorData, repmat({['ParaffinOil']}, 1, nTrials));
+controlTrials =  [optoTrials(2:end), 0]%[0,optoTrials(1:end-1)];%;%%%
+ch1Trials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-6']}, 1, nTrials));
+ch2Trials = cellfun(@strcmp, odorData, repmat({['cVA_e-5']}, 1, nTrials));
+ch3Trials = cellfun(@strcmp, odorData, repmat({['IsobutyricAcid_e-6']}, 1, nTrials));
+ch4Trials = cellfun(@strcmp, odorData, repmat({['ParaffinOil']}, 1, nTrials));
 
 optoControl = optoTrials | controlTrials;
-optoControl(130:end) = 0;
+optoControl([1:69]) = 0;
+
+
+
+
+% First removed: [24:31 40:47 56:63 72:79]
+% Second removed: [16:23 32:39 48:55 64:71]
+
+% TTX first removed: [88:95 104:111]
+% TTX second removed: [80:87 96:103]
 
 allTrials = 1:length(expData.expInfo);
 
+    %% Plot Rinputs vs. LED duty cycle
+h = figure(1); clf
+Rinputs = [bl.trialInfo.Rin];
+LEDpowers = [1:4, 10 25 50 100];
+plot(LEDpowers, Rinputs, '.', 'MarkerSize', 40);
 
+title('Power = 5%, +ND25+ND25+ND50');
+xlabel('LED duty cycle');
+ylabel('Input resistance (GOhm)');
+
+set(gcf, 'Color', [1 1 1]);
+% Format figure
+ax = gca;
+ax.LineWidth = 2;
+ax.XColor = 'k';
+ax.YColor = 'k';
+ax.FontSize = 16;

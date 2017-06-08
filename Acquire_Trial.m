@@ -151,7 +151,9 @@ function [data] = Acquire_Trial(acqSettings)
 %       3  Amplifier Gain (Alpha)
 %       4  Amplifier Filter Freq
 %       5  Amplifier Mode
-%       6  Camera strobe input
+
+%    SECOND SESSION ('th'):
+%       1  Bath thermocouple
     
     % Setup session and input channels
     s = daq.createSession('ni');
@@ -186,8 +188,17 @@ function [data] = Acquire_Trial(acqSettings)
     data.outputData = outputData;
     s.queueOutputData(outputData);
 
+        
+%     % Setup thermocouple acquistion
+%     th = daq.createSession('ni');
+%     th.DurationInSeconds = sum(data.trialduration);
+%     th.Rate = 10;
+%     ch = addAnalogInputChannel(th, 'Dev3', 'ai0', 'Thermocouple') % Bath thermocouple
+%     ch.ThermocoupleType = 'K';
+    
     % Start acquisition
     s.Rate = data.samprateout;
+%     th.startBackground();
     rawAcqData = s.startForeground();
 
 %% RUN POST-PROCESSING AND SAVE DATA
