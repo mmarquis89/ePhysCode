@@ -1,9 +1,9 @@
-setLED(10)
+setLED(5)
 %%
-expNum = 3; 
+expNum = 1; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
-Istep = [-10];
-Ihold = -10;
+Istep = [];
+Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
 odors = {'EthylAcetate_e-2', 'Methylcyclohexanol_e-2', 'IsobutyricAcid_e-2', 'ParaffinOil'};
@@ -22,7 +22,7 @@ end
  
 %% ACQUIRE TRACE
 
-traceDuration = 20; % Time to acquire in seconds
+traceDuration = 10; % Time to acquire in seconds
 
 for iFold = 1
     aS = acqSettings;

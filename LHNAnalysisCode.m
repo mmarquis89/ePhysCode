@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-Jun-05', 3);
+expData = loadExperiment('2017-Jun-08', 1);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -27,7 +27,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [34:41];%allTrials(optoControl)% & ch4Trials)
+trialList = allTrials(optoControl & ch4Trials)
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -118,13 +118,13 @@ f = figInfo;
 f.figDims = [10 300 1900 500];
 f.timeWindow = [4 12];
 f.lineWidth = 1.5;
-f.yLims = [];
+f.yLims = [-65 -20];
 
 medfilt = 0;
 offset = 0;
 
 % Specify trial groups
-traceGroups = repmat([1;1], bl.nTrials/2, 1);%[1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
+traceGroups = repmat([1;2], bl.nTrials/2, 1);%[1 2]; % repmat([1],bl.nTrials, 1);%[ones(), 1), 2*ones(), 1)]; %[1:numel(trialList)]; %
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(numel(trialList));
 f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
@@ -132,8 +132,8 @@ f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(
 
 
 odorName = strrep(bl.trialInfo(1).odor,'_','\_');
-% title([odorName, '   -  LED power = 5%, DC = 1%'])
-title('Avg of all odors, LED on second trial +7 uM TTX  -  LED power = 5%, DC = 1%');
+title([odorName, '   -  LED power = 5%, DC = 1%'])
+% title('EthylAcetate\_e-2 - Opto on second trial  -  LED power = 5%, DC = 1%');
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -150,7 +150,7 @@ f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
 f.timeWindow = [5.5 10];
-f.yLims = [];
+f.yLims = [-65 -15];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -207,7 +207,7 @@ ylabel('Vm (mV)');
 
 %% GET SPIKE TIMES FROM CURRENT
 
-posThresh = 7; %[1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
+posThresh = 5; %[1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
 % spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
 spikes = getSpikesSimple(bl, posThresh(1), invert); % Use simple spike detection if spikes are very large
@@ -262,10 +262,10 @@ end
 
 %% PLOT SPIKE RASTERS FOR EACH ODOR
 f = figInfo;
-f.timeWindow = [5 12];
+f.timeWindow = [7 8];
 f.figDims = [10 50 1500 900];
-histOverlay = 0;
-nBins = (diff(f.timeWindow)+1)*3;
+histOverlay = 1;
+nBins = (diff(f.timeWindow)+1)*50;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -305,7 +305,7 @@ end
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Jun_05_Exp_2_Averaged_Odor_Responses';
+filename = 'Jun_08_ParaffinOil_e-2_Opto_First';
 savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
@@ -369,7 +369,7 @@ ylim([-100 0]);
     strDate = expData.expInfo(1).date;
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
-    savePath = fullfile(parentDir, 'Combined videos', strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
+    savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
     msg = makePlottingVids(expData, parentDir, flowDir, savePath);
     disp(msg);
@@ -728,23 +728,22 @@ altStimData = {expData.expInfo.altStimDuration};
 nTrials = length(odorData);
 
 optoTrials = cellfun(@isequal, altStimData, repmat({[6 3 6]}, 1, nTrials));
-controlTrials =  [optoTrials(2:end), 0]%[0,optoTrials(1:end-1)];%;%%%
-ch1Trials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-6']}, 1, nTrials));
-ch2Trials = cellfun(@strcmp, odorData, repmat({['cVA_e-5']}, 1, nTrials));
-ch3Trials = cellfun(@strcmp, odorData, repmat({['IsobutyricAcid_e-6']}, 1, nTrials));
+controlTrials =  [optoTrials(2:end), 0];%[0,optoTrials(1:end-1)];%;%;%%%
+ch1Trials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-2']}, 1, nTrials));
+ch2Trials = cellfun(@strcmp, odorData, repmat({['Methylcyclohexanol_e-2']}, 1, nTrials));
+ch3Trials = cellfun(@strcmp, odorData, repmat({['IsobutyricAcid_e-2']}, 1, nTrials));
 ch4Trials = cellfun(@strcmp, odorData, repmat({['ParaffinOil']}, 1, nTrials));
 
 optoControl = optoTrials | controlTrials;
-optoControl([1:69]) = 0;
+optoControl([1:70 71:86 103:118 135:150]) = 0;
 
 
 
 
-% First removed: [24:31 40:47 56:63 72:79]
-% Second removed: [16:23 32:39 48:55 64:71]
+% First removed: [71:86 103:118 135:150]
+% Second removed: [87:102 119:134 151:166]
 
-% TTX first removed: [88:95 104:111]
-% TTX second removed: [80:87 96:103]
+
 
 allTrials = 1:length(expData.expInfo);
 

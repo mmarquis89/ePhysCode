@@ -15,7 +15,11 @@ frameRate = expData.expInfo(1).acqSettings.frameRate;
 nTrials = length(expData.expInfo);
 
 % Create videowriter
-myVidWriter = VideoWriter(fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots'], ['E', num2str(expData.expInfo(1).expNum),'_AllTrials.avi']));
+vidDir = fullfile(parentDir, 'Combined videos', strDate, ['E', num2str(expData.expInfo(1).expNum)]);
+if ~isdir(vidDir);
+   mkdir(vidDir) 
+end
+myVidWriter = VideoWriter(fullfile(vidDir, ['E', num2str(expData.expInfo(1).expNum),'_AllTrials.avi']));
 myVidWriter.FrameRate = frameRate;
 open(myVidWriter)
 
