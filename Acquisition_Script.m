@@ -1,4 +1,4 @@
-setLED(5)
+setLED(10)
 %%
 expNum = 1; 
 trialDuration = [7 1 7];    % [pre-stim, clean valve open, post-stim]
@@ -6,7 +6,7 @@ Istep = [];
 Ihold = 0;
 
 % ODORS MUST BE LISTED IN ORDER OF VALVE NUMBER!!!
-odors = {'EthylAcetate_e-2', 'Methylcyclohexanol_e-2', 'IsobutyricAcid_e-2', 'ParaffinOil'};
+odors = {'EthylAcetate_e-2', 'cVA_e-2', 'IsobutyricAcid_e-2', 'ParaffinOil'};
 
 
 %% DELETE ALL DATA FROM THE CURRENT EXPERIMENT
@@ -41,7 +41,7 @@ disp(['Total time elapsed: ', num2str(toc), ' sec']);
 % Setup odor and valve list manually
 % odorList = odors([1 1 2 2 3 3 4 4]);
 
-% % Create shuffled trial order
+% Create shuffled trial order
 nReps = 2;
 odorPanel = [1:4];
 odorList = shuffleTrials(odors(odorPanel), nReps);
@@ -74,12 +74,12 @@ for iTrial = 1:nTrials
 end 
 disp('End of block');
 
-%% RUN OPTO STIM TRIAL(S)
+%% RUN PAIRS OF OPTO STIM TRIALS
 
 optoDuration = [6 3 6];
 LEDpower = 5; % 1-100
-dutyCycle = 1; % 1-100
-odorPanel = [1];
+dutyCycle = 5; % 1-100
+odorPanel = [1:4];
 nReps = 1;
 
 % Make sure opto and trial durations sum to the same number
@@ -101,7 +101,7 @@ for iFold = 1
     aS.metadata.LEDpower = LEDpower;
 end
 
-% Setup odor trials with alternating light stim (opto on second trial)
+% Setup odor trials with alternating light stim
 if length(odorPanel) > 1
     odorList = shuffleTrials(odors(odorPanel), nReps);
     disp('Shuffle complete')
@@ -137,6 +137,30 @@ for iTrial = 1:nTrials
 end 
 disp('End of block');
 
+%% RUN TRIAL(S) WITH LED STIMULUS ONLY
+
+stimDuration = [6 3 6];
+traceDuration = sum(stimDuration);
+LEDpower = 10; % 1-100
+dutyCycle = 100; % 1-100
+nReps = 1;
+
+% Set general acquisition parameters
+setLED(LEDpower); 
+for iFold = 1
+    aS = acqSettings;
+    aS.expNum = expNum;
+    aS.trialDuration = traceDuration;
+    aS.altStimDuration = stimDuration;
+    aS.altStimType = 'opto';
+    aS.Istep = Istep;
+    aS.Ihold = Ihold;
+    aS.altStimParam = dutyCycle;
+    aS.metadata.LEDpower = LEDpower;
+end
+for iTrial = 1:nReps
+    [~] = Acquire_Trial(aS);
+end
 %% RUN IONTOPHORESIS TRIAL(S)
 
 iontoDuration = [5 7 18];

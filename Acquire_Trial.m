@@ -11,6 +11,7 @@ function [data] = Acquire_Trial(acqSettings)
             % 'opto'
             % 'ionto'
             % 'eject'
+    % altStimParam = additional parameter used to set up the alternate stimulus (e.g. LED duty cycle)
     % odor = record of odor ID - Use 'EmptyVial', 'ParaffinOil', or the odor name, or '[]' if no stim is delivered
     % valveID = a number from 1-4 indicating which valve to use if a stimulus is delivered (pass '[]' if no stim)
     % Istep = the size of the current step to use at the beginning of the trial in pA. Pass '[]' to skip the step.
@@ -20,7 +21,7 @@ function [data] = Acquire_Trial(acqSettings)
     % sampRate (default = 20000): input and output sampling rate for the trial. 
     % stepStartTime (default = 1): time in seconds from the start of the trial to begin the current test step. 
     % stepLength (default = 1): length of current test step in seconds. 
-    % DAQOffset (default = 0.7): the amount of current the DAQ is injecting when the command is 0. 
+    % DAQOffset (default varies): the amount of current the DAQ is injecting when the command is 0. 
     % altStimChan (default = 'port0/line12'): the name of the output channel on the DAQ for the alternate stimulus. 
     % frameRate (default = 30): The rate (in FPS) at which the behavior camera should acquire images during the trial
         
@@ -43,7 +44,7 @@ function [data] = Acquire_Trial(acqSettings)
     sampRate = data.sampratein;
     data.acquisition_filename = mfilename('fullpath');       % Saves name of mfile that generated data    
     
-    % Check if trial will use stimulus
+    % Check if trial will use odor stimulus
     if length(trialDuration) == 1
         stimOn = 0;
     else
@@ -76,9 +77,6 @@ function [data] = Acquire_Trial(acqSettings)
         % Make sure valves are closed 
         isoValveOut(end) = 0;
         shuttleValveOut(end) = 0;
-    else
-        shuttleValveOut = zeros(sampRate*sum(trialDuration), 1);
-        isoValveOut = zeros(sampRate*sum(trialDuration), 1);
     end
     
     % Alternative stimulus setup
@@ -127,14 +125,14 @@ function [data] = Acquire_Trial(acqSettings)
     end
     
     % Set up amplifier external current command
-    commandScalar = 4; % The number to divide desired command in pA by to get the correct voltage output
+    COMMAND_SCALAR = 4; % The number to divide desired command in pA by to get the correct voltage output from the DAQ
     if ~isempty(Istep)
-        preStepOut = ones(sampRate*data.stepStartTime,1) * Ihold/commandScalar;
-        stepOut = (ones(sampRate*data.stepLength, 1) * (Ihold + Istep)/commandScalar);
-        postStepOut = ones(sampRate * (sum(trialDuration) - (data.stepStartTime + data.stepLength)), 1) * Ihold/commandScalar;
-        Icommand = [preStepOut; stepOut; postStepOut] - data.DAQOffset/commandScalar;
+        preStepOut = ones(sampRate*data.stepStartTime,1) * Ihold/COMMAND_SCALAR;
+        stepOut = (ones(sampRate*data.stepLength, 1) * (Ihold + Istep)/COMMAND_SCALAR);
+        postStepOut = ones(sampRate * (sum(trialDuration) - (data.stepStartTime + data.stepLength)), 1) * Ihold/COMMAND_SCALAR;
+        Icommand = [preStepOut; stepOut; postStepOut] - data.DAQOffset/COMMAND_SCALAR;
     else
-        Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/commandScalar) - data.DAQOffset/commandScalar;
+        Icommand = (ones(sampRate*sum(trialDuration),1) * Ihold/COMMAND_SCALAR) - data.DAQOffset/COMMAND_SCALAR;
     end
     
     % Set up camera trigger output
@@ -188,7 +186,6 @@ function [data] = Acquire_Trial(acqSettings)
     data.outputData = outputData;
     s.queueOutputData(outputData);
 
-        
 %     % Setup thermocouple acquistion
 %     th = daq.createSession('ni');
 %     th.DurationInSeconds = sum(data.trialduration);

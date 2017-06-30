@@ -1,7 +1,7 @@
 
 %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-Jun-08', 1);
+expData = loadExperiment('2017-May-04', 2);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -27,7 +27,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = allTrials(optoControl & ch4Trials)
+trialList = [19]; %allTrials(optoControl & ch3Trials)
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -84,20 +84,21 @@ disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [2 12];
-f.yLims = [-70 -25];
+f.timeWindow = [];
+f.yLims = [-65 0];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
 f.yLabel = ['Voltage (mV)'];
-f.title = 'ACV e-2, Power = 5%, Duty cycle = 100%  +ND25+ND25+ND50';%['Trial #', num2str(bl.trialList(1)), ' - ', ...
+% f.title = 'ACV e-2, Power = 5%, Duty cycle = 100%  +ND25+ND25+ND50';%['Trial #', num2str(bl.trialList(1)), ' - ', ...
 %                 regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')]; %['#' num2str(bl.trialList(1)) '-' num2str(bl.trialList(end)) '\_' ...
 %regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}')];
-f.figLegend = {'Control', '+LED'};
+% f.figLegend = {'Control', '+LED'};
+% f.title = regexprep(bl.trialInfo(1).odor, '_e(?<num>..)', '\\_e^{$<num>}');
 
 traceData = [bl.scaledOut']; % rows are traces
-traceColors = repmat([0,0,1;1,0,0], bl.nTrials/2, 1); % n x 3 RGB array
-
+% traceColors = repmat([0,0,1;1,0,0], bl.nTrials/2, 1); % n x 3 RGB array
+traceColors = [0 0 1];
 annotLines = {[bl.stimOnTime, bl.stimOnTime+bl.stimLength], bl.altStimStartTime, bl.altStimStartTime+bl.altStimLength}; % cell array of xLocs for annotation lines
 annotColors = [0,0,0;1 0 1;1 0 1]; % m x 3 RGB array for each annotation line
 
@@ -118,7 +119,7 @@ f = figInfo;
 f.figDims = [10 300 1900 500];
 f.timeWindow = [4 12];
 f.lineWidth = 1.5;
-f.yLims = [-65 -20];
+f.yLims = [-50 -20];
 
 medfilt = 0;
 offset = 0;
@@ -131,9 +132,9 @@ f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(
 [~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 
-odorName = strrep(bl.trialInfo(1).odor,'_','\_');
-title([odorName, '   -  LED power = 5%, DC = 1%'])
-% title('EthylAcetate\_e-2 - Opto on second trial  -  LED power = 5%, DC = 1%');
+% odorName = strrep(bl.trialInfo(1).odor,'_','\_');
+% title([odorName, '   -  LED power = 5%, DC = 1%'])
+title('Average across all odors - LED stim on second trial  -  LED power = 5%, DC = 1%');
 % legend('off')
 [~,objh,~,~] = legend(f.figLegend,'Location','Northeast', 'fontsize',22);
 set(objh, 'linewidth', 4);
@@ -150,7 +151,7 @@ f = figInfo;
 f.yLims = [];
 f.figDims = [10 200 1000 600];
 f.timeWindow = [5.5 10];
-f.yLims = [-65 -15];
+f.yLims = [-60 -15];
 f.lineWidth = 1.5;
 
 medfilt = 1;
@@ -265,7 +266,7 @@ f = figInfo;
 f.timeWindow = [7 8];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*50;
+nBins = (diff(f.timeWindow)+1)*15;
 [h] = odorRasterPlots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
@@ -276,17 +277,17 @@ f = figInfo;
 f.timeWindow = [7 8];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
-nBins = (diff(f.timeWindow)+1)*30;
+nBins = (diff(f.timeWindow)+1)*15;
 
-rasterGroups = repmat([1; 2], bl.nTrials/2, 1);
+rasterGroups = repmat([2; 1], bl.nTrials/2, 1);
 groupNames = {'Control', '+ LED'};
 [h] = groupedRasterPlots(bl, f, histOverlay, nBins, rasterGroups, groupNames);
-suptitle('Farnesol');
+suptitle('IsobutyricAcid - LED on first trial');
 
 %% COUNT AVG SPIKES IN A TIME WINDOW W/ARBITRARY GROUPING
 timeWindow = [7 9];
 sampWin = timeWindow * bl.sampRate;
-groups = repmat([1; 2], bl.nTrials/2, 1);
+groups = repmat([1;2], bl.nTrials/2, 1);
 spikeLocs = {bl.spikes.locs};
 
 % Separate out spikes in specified time window
@@ -305,7 +306,7 @@ end
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'Jun_08_ParaffinOil_e-2_Opto_First';
+filename = 'May_04_Exp_2_LED_Stim_Example';
 savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
@@ -415,28 +416,34 @@ stepLen = bl.trialInfo(1).stepLength;
 trialDuration = bl.trialInfo(1).trialduration;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'flowData');
 
 % Separate out optic flow data from the current block
-blFlow = allFlow(trialList);
+blFlow = flowData(trialList);
 
 avgVm = [];
 avgFlow = [];
-for iTrial = 1:bl.nTrials
+for iTrial = [1:46 48:bl.nTrials]
     
     % Compute mean Vm for the trial, excluding the test step and odor response period
     preStep = 1:rate*stepStart;
-    preOdor = rate*(stepStart+stepLen):rate*trialDuration(1);
-    postOdor = rate*(sum(trialDuration(1:2))+1):rate*sum(trialDuration);
-    avgTimes = [preStep, preOdor, postOdor];
+%     preOdor = rate*(stepStart+stepLen):rate*trialDuration(1);
+%     postOdor = rate*(sum(trialDuration(1:2))+1):rate*sum(trialDuration);
+%     avgTimes = [preStep, preOdor, postOdor];
+    preStim = rate*(stepStart+stepLen):(rate*6);
+    postStim = (rate*9):(rate*sum(trialDuration));
+    avgTimes = [preStep, preStim, postStim];
     avgVm(iTrial) = mean(bl.scaledOut([avgTimes], iTrial));
     
     % Compute mean optic flow for the trial from the same time periods
     rate = bl.trialInfo(1).acqSettings.frameRate;
     preStep = 1:rate*stepStart;
-    preOdor = rate*(stepStart+stepLen):rate*trialDuration(1);
-    postOdor = rate*(sum(trialDuration(1:2))+1):rate*sum(trialDuration);
-    avgTimes = [preStep, preOdor, postOdor];    
+%     preOdor = rate*(stepStart+stepLen):rate*trialDuration(1);
+%     postOdor = rate*(sum(trialDuration(1:2))+1):rate*sum(trialDuration);
+%     avgTimes = [preStep, preOdor, postOdor];  
+    preStim = rate*(stepStart+stepLen):(rate*6);
+    postStim = (rate*9):(rate*sum(trialDuration));
+    avgTimes = [preStep, preStim, postStim];
     avgFlow(iTrial) = mean(blFlow{iTrial}(avgTimes));
 end
 
@@ -444,6 +451,7 @@ end
 cm = winter(bl.nTrials);
 h = figure(1); clf;
 scatter(avgVm, avgFlow, [], cm, 'o', 'filled');
+xlim([-45, -35])
 xlabel('Average Vm (mV)');
 ylabel('Average optic flow (AU)');
 title('DA #1 + DA #2');
@@ -467,35 +475,39 @@ stepLen = bl.trialInfo(1).stepLength;
 trialDuration = bl.trialInfo(1).trialduration;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'flowData');
 
 % Separate out optic flow data from the current block
-blFlow = allFlow(trialList);
+blFlow = flowData(trialList);
 
 plotVm = [];
 plotFlow = [];
-for iTrial = 1:bl.nTrials
+for iTrial = [1:bl.nTrials]
     
     % Load optic flow data for current trial
     currFlow = blFlow{iTrial};
     
-    % Compute mean Vm for each frame of video
-    currVm = [];
-    for iFrame = 1:length(currFlow)
-        sampPerFrame = sR/fR;
-        sampStart = (floor((iFrame-1)*sampPerFrame))+1;
-        sampEnd = floor(iFrame*sampPerFrame);
-        currVm(iFrame) = mean(bl.scaledOut(sampStart:sampEnd, iTrial));
+    % Skip any trials without the correct number of frames
+    frameTarget = max(cellfun(@length, blFlow));
+    if length(currFlow) == frameTarget
+
+        % Compute mean Vm for each frame of video
+        currVm = [];
+        for iFrame = 1:length(currFlow)
+            sampPerFrame = sR/fR;
+            sampStart = (floor((iFrame-1)*sampPerFrame))+1;
+            sampEnd = floor(iFrame*sampPerFrame);
+            currVm(iFrame) = mean(bl.scaledOut(sampStart:sampEnd, iTrial));
         end
-    
-    % Remove frames from the test step and odor response period and add to plotting data
-    preStep = 2:fR*stepStart; % Starting at 2 because the first optic flow measurement is invalid
-    preOdor = fR*(stepStart+stepLen):fR*trialDuration(1);
-    postOdor = fR*(sum(trialDuration(1:2))+1):fR*sum(trialDuration);
-    goodFrames = [preStep, preOdor, postOdor]';
-    plotVm = [plotVm; currVm(goodFrames)'];
-    plotFlow = [plotFlow; blFlow{iTrial}(goodFrames)];
-    
+        
+        % Remove frames from the test step and odor response period and add to plotting data
+        preStep = 2:fR*stepStart; % Starting at 2 because the first optic flow measurement is invalid
+        preOdor = fR*(stepStart+stepLen):fR*(trialDuration(1)-1);
+        postOdor = fR*(sum(trialDuration(1:2))+2):fR*sum(trialDuration);
+        goodFrames = [preStep, preOdor, postOdor]';
+        plotVm = [plotVm; currVm(goodFrames)'];
+        plotFlow = [plotFlow; blFlow{iTrial}(goodFrames)];
+    end%if
 end
 
 % Make scatter plot of all datapoints
@@ -515,6 +527,11 @@ ax.FontSize = 12;
 set(gcf, 'Color', [1 1 1]);
 set(gcf, 'Position', [100 100 1000 800])
 
+flowThresh = 0.25;
+disp(['Mean Vm for all frames: ', num2str(mean(plotVm))])
+disp(['Mean Vm above optic flow threshold: ', num2str(mean(plotVm(plotFlow>flowThresh)))]);
+disp(['Mean Vm below optic flow threshold: ', num2str(mean(plotVm(plotFlow<=flowThresh)))]);
+
 %% PLOT 2D HISTOGRAM OF Vm VS. OPTIC FLOW FOR EACH FRAME
 
 % Load parameters
@@ -526,35 +543,40 @@ stepLen = bl.trialInfo(1).stepLength;
 trialDuration = bl.trialInfo(1).trialduration;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'flowData');
 
 % Separate out optic flow data from the current block
-blFlow = allFlow(trialList);
+blFlow = flowData(trialList);
 
 plotVm = [];
 plotFlow = [];
-for iTrial = 1:bl.nTrials
+for iTrial =[1:bl.nTrials]
     
     % Load optic flow data for current trial
     currFlow = blFlow{iTrial};
     
-    % Compute mean Vm for each frame of video
-    currVm = [];
-    for iFrame = 1:length(currFlow)
-        sampPerFrame = sR/fR;
-        sampStart = (floor((iFrame-1)*sampPerFrame))+1;
-        sampEnd = floor(iFrame*sampPerFrame);
-        currVm(iFrame) = mean(bl.scaledOut(sampStart:sampEnd, iTrial));
-    end
-    
-    % Remove frames from the test step and odor response period and add to plotting data
-    preStep = 2:fR*stepStart; % Starting at 2 because the first optic flow measurement is invalid
-    preOdor = fR*(stepStart+stepLen):fR*trialDuration(1);
-    postOdor = fR*(sum(trialDuration(1:2))+1):fR*sum(trialDuration);
-    goodFrames = [preStep, preOdor, postOdor]';
-    plotVm = [plotVm; currVm(goodFrames)'];
-    plotFlow = [plotFlow; blFlow{iTrial}(goodFrames)];
-    
+    % Skip any trials without the correct number of frames
+    frameTarget = max(cellfun(@length, blFlow));
+    if length(currFlow) == frameTarget
+        
+        % Compute mean Vm for each frame of video
+        currVm = [];
+        for iFrame = 1:length(currFlow)
+            sampPerFrame = sR/fR;
+            sampStart = (floor((iFrame-1)*sampPerFrame))+1;
+            sampEnd = floor(iFrame*sampPerFrame);
+            currVm(iFrame) = mean(bl.scaledOut(sampStart:sampEnd, iTrial));
+        end
+        
+        % Remove frames from the test step and odor response period and add to plotting data
+        preStep = 2:fR*stepStart; % Starting at 2 because the first optic flow measurement is invalid
+        preOdor = fR*(stepStart+stepLen):fR*(trialDuration(1)-1);
+        postOdor = fR*(sum(trialDuration(1:2))+2):fR*sum(trialDuration);
+        goodFrames = [preStep, preOdor, postOdor]';
+        plotVm = [plotVm; currVm(goodFrames)'];
+        plotFlow = [plotFlow; blFlow{iTrial}(goodFrames)];
+        
+    end%if
 end
 
 % Make 2D histogram
@@ -596,10 +618,10 @@ nBins = sum(trialDuration)*2.5;
 binLength = sum(bl.trialDuration)./nBins;
 
 % Load optic flow data
-load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'allFlow');
+load(fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']), 'flowData');
 
 % Separate out optic flow data from the current block
-blFlow = allFlow(trialList);
+blFlow = flowData(trialList);
 
 plotSpikes = [];
 plotFlow = [];
@@ -728,20 +750,20 @@ altStimData = {expData.expInfo.altStimDuration};
 nTrials = length(odorData);
 
 optoTrials = cellfun(@isequal, altStimData, repmat({[6 3 6]}, 1, nTrials));
-controlTrials =  [optoTrials(2:end), 0];%[0,optoTrials(1:end-1)];%;%;%%%
-ch1Trials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-2']}, 1, nTrials));
-ch2Trials = cellfun(@strcmp, odorData, repmat({['Methylcyclohexanol_e-2']}, 1, nTrials));
-ch3Trials = cellfun(@strcmp, odorData, repmat({['IsobutyricAcid_e-2']}, 1, nTrials));
+controlTrials =  [0,optoTrials(1:end-1)];%[optoTrials(2:end), 0];%%%%%%;%;%%%
+ch1Trials = cellfun(@strcmp, odorData, repmat({['EthylAcetate_e-6']}, 1, nTrials));
+ch2Trials = cellfun(@strcmp, odorData, repmat({['cVA_e-5']}, 1, nTrials));
+ch3Trials = cellfun(@strcmp, odorData, repmat({['IsobutyricAcid_e-6']}, 1, nTrials));
 ch4Trials = cellfun(@strcmp, odorData, repmat({['ParaffinOil']}, 1, nTrials));
 
 optoControl = optoTrials | controlTrials;
-optoControl([1:70 71:86 103:118 135:150]) = 0;
+optoControl([1:15 16:35 52:67 84:99 116:131 148:163]) = 0;
 
 
 
 
-% First removed: [71:86 103:118 135:150]
-% Second removed: [87:102 119:134 151:166]
+% First removed: [36:51 68:83 100:115 132:147]
+% Second removed: [16:35 52:67 84:99 116:131]
 
 
 
