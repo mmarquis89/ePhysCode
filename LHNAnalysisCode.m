@@ -1,7 +1,8 @@
 
 %% LOAD EXPERIMENT
+parentDir = 'D:\Dropbox (HMS)\Data';
 disp('Loading experiment...');
-expData = loadExperiment('2017-May-04', 2);
+expData = loadExperiment('2017-May-30', 2, parentDir);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -27,7 +28,7 @@ end
 bl = [];
 odorTrials = [];
 
-trialList = [19]; %allTrials(optoControl & ch3Trials)
+trialList = [17]; %allTrials(optoControl & ch3Trials)
 
 block = getTrials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
@@ -84,8 +85,8 @@ disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
 f = figInfo;
 f.figDims = [10 300 1900 500];
 
-f.timeWindow = [];
-f.yLims = [-65 0];
+f.timeWindow = [2 10];
+f.yLims = [-57 -10];
 f.lineWidth = [1];
 
 f.xLabel = ['Time (s)'];
@@ -306,15 +307,15 @@ end
 %% SAVING FIGURES
 
 tic; t = [];
-filename = 'May_04_Exp_2_LED_Stim_Example';
-savefig(h, ['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\', filename])
+filename = 'May_30_exp_2_LED_Stim_Example';
+savefig(h, ['D:\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
     set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
 else
     set(h,'PaperUnits','inches')
 end
-export_fig(['C:\Users\Wilson Lab\Dropbox (HMS)\Figs\PNG files\', filename], '-png');
+export_fig(['D:\Dropbox (HMS)\Figs\PNG files\', filename], '-png');
 t(2) = toc; tL{2} = 'Local PNG save';
 dispStr = '';
 for iToc = 1:length(t)
