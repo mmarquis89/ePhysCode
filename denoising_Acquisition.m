@@ -1,6 +1,4 @@
-
-
-function data = denoising_Acquisition(expNumber,trialDuration)
+function data = denoising_acquisition(expNumber,trialDuration)
 
 % expnumber = experiment (fly or cell) number
 % trialDuration = [pre-stim, clean valve open, post-stim] in seconds
@@ -19,7 +17,7 @@ function data = denoising_Acquisition(expNumber,trialDuration)
     aS.trialDuration = trialDuration;
 
     % Run initial setup function
-    [data, n] = acquisitionSetup(aS);
+    [data, n] = acquisition_setup(aS);
     disp(num2str(n))
     sampRate = data(n).sampratein;
     data(n).acquisition_filename = mfilename('fullpath');       % saves name of mfile that generated data
@@ -47,7 +45,7 @@ function data = denoising_Acquisition(expNumber,trialDuration)
     x = s.startForeground();
 
 %% RUN POST-PROCESSING AND SAVE DATA
-    [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, x, n);
+    [data, current, scaledOut, tenVm] = acquisition_post_processing(data, x, n);
  
 %% PLOT FIGURES
     
@@ -84,11 +82,11 @@ function data = denoising_Acquisition(expNumber,trialDuration)
 
     % Calulate frequency power spectrum for each data type
     if strcmp(data(n).scaledOutMode, 'V')
-        [pfftV, fValsV] = getFreqContent(scaledOut,sampRate);
-        [pfftC, fValsC] = getFreqContent(current(:,1),sampRate);
+        [pfftV, fValsV] = get_freq_content(scaledOut,sampRate);
+        [pfftC, fValsC] = get_freq_content(current(:,1),sampRate);
     elseif strcmp(data(n).scaledOutMode, 'I')
-        [pfftV, fValsV] = getFreqContent(tenVm,sampRate);
-        [pfftC, fValsC] = getFreqContent(scaledOut,sampRate);
+        [pfftV, fValsV] = get_freq_content(tenVm,sampRate);
+        [pfftC, fValsC] = get_freq_content(scaledOut,sampRate);
     end
     
     % Plot them each on a log scale

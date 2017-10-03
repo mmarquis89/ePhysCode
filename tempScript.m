@@ -1,13 +1,13 @@
    
     %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-Jun-05', 1);
+expData = load_experiment('2017-Jun-05', 1);
 disp('Experiment loaded');
 
 %% VIDEO PROCESSING
     % CREATE MOVIES FROM .TIF FILES
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = makeVids(expData, parentDir);
+    msg = make_vids(expData, parentDir);
     disp(msg);
 
     % CALCULATE OR LOAD MEAN OPTICAL FLOW
@@ -17,7 +17,7 @@ disp('Experiment loaded');
 
     if isempty(dir(savePath))
         disp('Calculating optic flow...')
-        allFlow = opticFlowCalc(expData, parentDir, savePath);
+        allFlow = optic_flow_calc(expData, parentDir, savePath);
         disp('Optic flow calculated successfully')
     else
         disp('Loading optic flow...')
@@ -31,12 +31,12 @@ disp('Experiment loaded');
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
     savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
-    msg = makePlottingVids(expData, parentDir, flowDir, savePath);
+    msg = make_plotting_vids(expData, parentDir, flowDir, savePath);
     disp(msg);
 
     % CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = concatenateVids(expData, parentDir);
+    msg = concatenate_vids(expData, parentDir);
     disp(msg);
 
     % ZIP RAW VIDEO FRAMES
@@ -67,13 +67,13 @@ disp('Experiment loaded');
     
     %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-Jun-05', 2);
+expData = load_experiment('2017-Jun-05', 2);
 disp('Experiment loaded');
 
 %% VIDEO PROCESSING
     % CREATE MOVIES FROM .TIF FILES
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = makeVids(expData, parentDir);
+    msg = make_vids(expData, parentDir);
     disp(msg);
 
     % CALCULATE OR LOAD MEAN OPTICAL FLOW
@@ -83,7 +83,7 @@ disp('Experiment loaded');
 
     if isempty(dir(savePath))
         disp('Calculating optic flow...')
-        allFlow = opticFlowCalc(expData, parentDir, savePath);
+        allFlow = optic_flow_calc(expData, parentDir, savePath);
         disp('Optic flow calculated successfully')
     else
         disp('Loading optic flow...')
@@ -97,12 +97,12 @@ disp('Experiment loaded');
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
     savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
-    msg = makePlottingVids(expData, parentDir, flowDir, savePath);
+    msg = make_plotting_vids(expData, parentDir, flowDir, savePath);
     disp(msg);
 
     % CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = concatenateVids(expData, parentDir);
+    msg = concatenate_vids(expData, parentDir);
     disp(msg);
 
     % ZIP RAW VIDEO FRAMES
@@ -133,13 +133,13 @@ disp('Experiment loaded');
     
         %% LOAD EXPERIMENT
 disp('Loading experiment...');
-expData = loadExperiment('2017-Jun-05', 3);
+expData = load_experiment('2017-Jun-05', 3);
 disp('Experiment loaded');
 
 %% VIDEO PROCESSING
     % CREATE MOVIES FROM .TIF FILES
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = makeVids(expData, parentDir);
+    msg = make_vids(expData, parentDir);
     disp(msg);
 
     % CALCULATE OR LOAD MEAN OPTICAL FLOW
@@ -149,7 +149,7 @@ disp('Experiment loaded');
 
     if isempty(dir(savePath))
         disp('Calculating optic flow...')
-        allFlow = opticFlowCalc(expData, parentDir, savePath);
+        allFlow = optic_flow_calc(expData, parentDir, savePath);
         disp('Optic flow calculated successfully')
     else
         disp('Loading optic flow...')
@@ -163,12 +163,12 @@ disp('Experiment loaded');
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
     savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
-    msg = makePlottingVids(expData, parentDir, flowDir, savePath);
+    msg = make_plotting_vids(expData, parentDir, flowDir, savePath);
     disp(msg);
 
     % CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = concatenateVids(expData, parentDir);
+    msg = concatenate_vids(expData, parentDir);
     disp(msg);
 
     % ZIP RAW VIDEO FRAMES

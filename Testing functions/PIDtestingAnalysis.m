@@ -99,7 +99,7 @@ f.figDims = fd; %[10 150 1450 800]; %[10 150 1450 800];
 traceData = meanV'; %bl.voltage';
 f.title = {[bl.date, '', figTitle], ['']};
 f.yLabel = 'Vm (mV)';
-plotTraces(h, bl, f, traceData, traceColors, annotLines, annotColors);
+plot_traces(h, bl, f, traceData, traceColors, annotLines, annotColors);
 
 %% Save figure
 tic; t = [];

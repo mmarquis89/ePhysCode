@@ -1,4 +1,4 @@
-function [data] = Acquire_Trial(acqSettings)
+function [data] = acquire_trial(acqSettings)
 
 % ===================================================================================================================
 % acqSettings: an acqSettings object with the following properties: 
@@ -40,7 +40,7 @@ function [data] = Acquire_Trial(acqSettings)
     Istep = acqSettings.Istep;
     
     % Run initial setup function
-    [data, trialNum] = acquisitionSetup(acqSettings);
+    [data, trialNum] = acquisition_setup(acqSettings);
     sampRate = data.sampratein;
     data.acquisition_filename = mfilename('fullpath');       % Saves name of mfile that generated data    
     
@@ -200,7 +200,7 @@ function [data] = Acquire_Trial(acqSettings)
 
 %% RUN POST-PROCESSING AND SAVE DATA
 
-    [data, current, scaledOut, tenVm] = acquisitionPostProcessing(data, rawAcqData, trialNum);
+    [data, current, scaledOut, tenVm] = acquisition_post_processing(data, rawAcqData, trialNum);
     
     % Move camera files from temp directory to local and network folders
     savePath = ['C:/Users/Wilson Lab/Dropbox (HMS)/Data/_Movies/', data.date, '/E', num2str(acqSettings.expNum), '_T', num2str(trialNum), '/'];

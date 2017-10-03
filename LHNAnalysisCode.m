@@ -2,7 +2,7 @@
 %% LOAD EXPERIMENT
 parentDir = 'D:\Dropbox (HMS)\Data';
 disp('Loading experiment...');
-expData = loadExperiment('2017-May-30', 2, parentDir);
+expData = load_experiment('2017-May-30', 2, parentDir);
 disp('Experiment loaded');
 
 %% SEPARATE MASTER BLOCK LIST BY ODORS
@@ -30,10 +30,10 @@ odorTrials = [];
 
 trialList = [17]; %allTrials(optoControl & ch3Trials)
 
-block = getTrials(expData, trialList);  % Save trial data and info as "block"
+block = get_trials(expData, trialList);  % Save trial data and info as "block"
 plotOn = 1;
 if ~isempty(block)
-    bl = makeBl(block, trialList);  % Reformat into more usable structure
+    bl = make_bl(block, trialList);  % Reformat into more usable structure
 
     if plotOn
   %     PLOT EACH TRIAL VOLTAGE AND CURRENT
@@ -43,7 +43,7 @@ if ~isempty(block)
         f.yLims = [];
         f.lineWidth = [];
         f.cm = winter(bl.nTrials);
-        [h,j] = traceOverlayPlot(bl, f);
+        [h,j] = trace_overlay_plot(bl, f);
         legend off
         figure(h);
         legend off
@@ -62,10 +62,10 @@ end
 disp(['Estimated Rpipette = ', num2str(bl.Rpipette)])
 
     %% Estimate seal resistance
-    bl.Rseal = sealResistanceCalc(bl.scaledOut, bl.voltage);
+    bl.Rseal = seal_resistance_calc(bl.scaledOut, bl.voltage);
     disp(['Estimated Rseal = ', num2str(bl.Rseal)])
     %% Estimate access resistance
-    bl.Raccess = accessResistanceCalc(bl.scaledOut, bl.sampRate);
+    bl.Raccess = access_resistance_calc(bl.scaledOut, bl.sampRate);
     disp(['Estimated Raccess = ', num2str(bl.Raccess)])
     %% Calculate total duration of experiment
     startTime = expData.expInfo(1).sampleTime;
@@ -105,7 +105,7 @@ annotColors = [0,0,0;1 0 1;1 0 1]; % m x 3 RGB array for each annotation line
 
 % Plot traces
 h = figure(1); clf; hold on;
-h = plotTraces(h, bl, f, traceData, traceColors, annotLines, annotColors);
+h = plot_traces(h, bl, f, traceData, traceColors, annotLines, annotColors);
 set(gca,'LooseInset',get(gca,'TightInset'))
 
 % Format figure
@@ -130,7 +130,7 @@ traceGroups = repmat([1;2], bl.nTrials/2, 1);%[1 2]; % repmat([1],bl.nTrials, 1)
 % groupColors = [repmat([0 0 1], 2, 1); repmat([0 1 1], 2,1); repmat([1 0 0 ], 2,1) ; repmat([1 0.6 0],2,1)];  %[0 0 1; 1 0 0; 1 0 0; 0 0 0]; % [0 0 1; 1 0 0] %[1 0 0;1 0 1;0 0 1;0 1 0]
 groupColors = [0 0 1; 1 0 0; 0.4 0.4 1; 1 0.4 0.4; 0.7 0.7 1; 1 0.7 0.7];%jet(numel(trialList));
 f.figLegend = {'Control', '+LED'}; %[{'Control','Ionto'}, cell(1, length(unique(traceGroups)))];
-[~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
+[~, h] = avg_trace_overlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 
 % odorName = strrep(bl.trialInfo(1).odor,'_','\_');
@@ -169,7 +169,7 @@ for iOdor = valveList;
 end
 f.figLegend = f.figLegend(~cellfun('isempty',f.figLegend));
 groupColors = [0 0 1; 0 .75 0; 1 0 0; 1 .5 0; .85 0 .85; .5 0 .5; 1 .5, 0]; %jet(nOdors);
-[avgTraces, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
+[avgTraces, h] = avg_trace_overlay(bl, f, traceGroups, groupColors, medfilt, offset);
 ax = gca;
 ax.LineWidth = 3;
 ax.XColor = 'k';
@@ -196,7 +196,7 @@ end
 
 groupColors = winter(nBlocks);
 f.figLegend = [{'Baseline','High Mg/Ca','Washout','High Mg only'}, cell(1, length(unique(traceGroups)))];
-[~, h] = avgTraceOverlay(bl, f, traceGroups, groupColors, medfilt, offset);
+[~, h] = avg_trace_overlay(bl, f, traceGroups, groupColors, medfilt, offset);
 
 title(strrep(odors(odorNum), '_', ' '))
 % legend('off')
@@ -211,8 +211,8 @@ ylabel('Vm (mV)');
 
 posThresh = 5; %[1.5 1.5 1.5 1.5]; % Minimum values in Std Devs to be counted as a spike: [peak amp, AHP amp, peak window, AHP window]
 invert = 1;
-% spikes = getSpikesI(bl, posThresh);     % Find spike locations in all trials
-spikes = getSpikesSimple(bl, posThresh(1), invert); % Use simple spike detection if spikes are very large
+% spikes = get_spikes_I(bl, posThresh);     % Find spike locations in all trials
+spikes = get_spikes_simple(bl, posThresh(1), invert); % Use simple spike detection if spikes are very large
 
 bl.spikes = spikes;                     % Save to data structure
 bl.normCurrent = bl.current - mean(median(bl.current));
@@ -257,7 +257,7 @@ else
     traceData = bl.normCurrent';
     disp('No invert');
 end
-plotTraces(h, bl, f, traceData, cm, annotLines, annotColors);
+plot_traces(h, bl, f, traceData, cm, annotLines, annotColors);
 for iTrial = 1:bl.nTrials
     plot([bl.spikes(iTrial).locs]./bl.sampRate, [bl.spikes(iTrial).peakVals], 'or')
 end
@@ -268,7 +268,7 @@ f.timeWindow = [7 8];
 f.figDims = [10 50 1500 900];
 histOverlay = 1;
 nBins = (diff(f.timeWindow)+1)*15;
-[h] = odorRasterPlots(bl, f, histOverlay, nBins);
+[h] = odor_raster_plots(bl, f, histOverlay, nBins);
 suptitle('');
 % tightfig;
 
@@ -282,7 +282,7 @@ nBins = (diff(f.timeWindow)+1)*15;
 
 rasterGroups = repmat([2; 1], bl.nTrials/2, 1);
 groupNames = {'Control', '+ LED'};
-[h] = groupedRasterPlots(bl, f, histOverlay, nBins, rasterGroups, groupNames);
+[h] = grouped_raster_plots(bl, f, histOverlay, nBins, rasterGroups, groupNames);
 suptitle('IsobutyricAcid - LED on first trial');
 
 %% COUNT AVG SPIKES IN A TIME WINDOW W/ARBITRARY GROUPING
@@ -328,11 +328,11 @@ disp(dispStr)
 
 % Calulate frequency power spectrum for each data type
 if strcmp(bl.trialInfo(1).scaledOutMode, 'I')
-    [pfftV, fValsV] = getFreqContent(bl.voltage(:,1),bl.sampRate);
-    [pfftC, fValsC] = getFreqContent(bl.scaledOut(:,1),bl.sampRate);
+    [pfftV, fValsV] = get_freq_content(bl.voltage(:,1),bl.sampRate);
+    [pfftC, fValsC] = get_freq_content(bl.scaledOut(:,1),bl.sampRate);
 elseif strcmp(bl.trialInfo(1).scaledOutMode, 'V')
-    [pfftV, fValsV] = getFreqContent(bl.scaledOut(:,1),bl.sampRate);
-    [pfftC, fValsC] = getFreqContent(bl.current(:,1),bl.sampRate);
+    [pfftV, fValsV] = get_freq_content(bl.scaledOut(:,1),bl.sampRate);
+    [pfftC, fValsC] = get_freq_content(bl.current(:,1),bl.sampRate);
 end
 
 % Plot them each on a log scale
@@ -349,7 +349,7 @@ ylim([-100 0]);
 %% VIDEO PROCESSING
     % CREATE MOVIES FROM .TIF FILES
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = makeVids(expData, parentDir);
+    msg = make_vids(expData, parentDir);
     disp(msg);
 
     % CALCULATE OR LOAD MEAN OPTICAL FLOW
@@ -359,7 +359,7 @@ ylim([-100 0]);
 
     if isempty(dir(savePath))
         disp('Calculating optic flow...')
-        allFlow = opticFlowCalc(expData, parentDir, savePath);
+        allFlow = optic_flow_calc(expData, parentDir, savePath);
         disp('Optic flow calculated successfully')
     else
         disp('Loading optic flow...')
@@ -373,12 +373,12 @@ ylim([-100 0]);
     flowDir = fullfile('C:\Users\Wilson Lab\Dropbox (HMS)\Data', strDate,['E', num2str(expData.expInfo(1).expNum),'OpticFlowData.mat']);
     savePath = fullfile(parentDir, strDate, ['E', num2str(expData.expInfo(1).expNum), '_Movies+Plots']);
 
-    msg = makePlottingVids(expData, parentDir, flowDir, savePath);
+    msg = make_plotting_vids(expData, parentDir, flowDir, savePath);
     disp(msg);
 
    % CONCATENATE ALL MOVIES+PLOTS FOR THE EXPERIMENT
     parentDir = 'C:\Users\Wilson Lab\Dropbox (HMS)\Data\_Movies';
-    msg = concatenateVids(expData, parentDir);
+    msg = concatenate_vids(expData, parentDir);
     disp(msg);
 
     % ZIP RAW VIDEO FRAMES

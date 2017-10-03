@@ -1,7 +1,7 @@
-function data = acquire_PID_trial(expNumber,trialDuration, valveID)
-% ==============================================================================================
+function data = acquire_PID_Trial_AKM(expNumber,trialDuration, valveID)
+% =============================================================================================================
 % expnumber = experiment (fly or cell) number
-% trialDuration = [pre-stim, clean valve open, post-stim] in seconds
+% trialDuration = [pre-stim, pinch valve acclimation, clean valve open, post-stim] in seconds
         % If trialDuration is a single integer, a trace of that duration will be acquired
 % odor = record of odor ID - Use 'EmptyVial', 'ParaffinOil', or the odor name, or '[]' if no stim is delivered
 % valveID = a number from 1-4 indicating which valve to use if a stimulus is delivered (use '[]' if no stim)
@@ -9,8 +9,7 @@ function data = acquire_PID_trial(expNumber,trialDuration, valveID)
 % Ihold = the holding current in pA to consistently inject into the cell
 
 % Raw data sampled at 20 kHz and saved as separate waveforms for each trial
-% ==============================================================================================
- 
+% ==============================================================================================================  
 %% SETUP TRIAL PARAMETERS
 
     [data, n] = acquisition_setup(expNumber,trialDuration, [], [], [], valveID, [], 0);
@@ -28,20 +27,21 @@ function data = acquire_PID_trial(expNumber,trialDuration, valveID)
     if stimOn        
        
         % Make pre- and post-stim output vectors
-        preStimIso = zeros(sampRate * trialDuration(1), 1);
-        postStim = zeros(sampRate * (trialDuration(3)-1), 1);
-        postStimShuttle = zeros(sampRate * trialDuration(3), 1);
+        preStimPinch = zeros(sampRate * trialDuration(1), 1);
+        preStimIso = zeros(sampRate * sum(trialDuration(1:2)), 1);
+        postStim = zeros(sampRate * (trialDuration(4)-1), 1);
+        postStimShuttle = zeros(sampRate * trialDuration(4), 1);
         
-        % iso valve open vectors
-        isoValveOpen = ones(sampRate * (trialDuration(2)+1), 1);     
-        shuttleValveOpen = ones(sampRate * trialDuration(2),1);
+        % Make pinch and iso valve open vectors
+        pinchValveOpen = ones(sampRate * (sum(trialDuration(2:3))+1), 1) * 5;
+        shuttleValveOpen = ones(sampRate * trialDuration(3),1) * 5;
         
-        % Put together full output vectors                  
-        isoValveOut = [preStimIso; isoValveOpen; postStim];        
+        % Put together full output vectors
+        pinchValveOut = [preStimPinch; pinchValveOpen; postStim];                                                          
         shuttleValveOut = [preStimIso; shuttleValveOpen; postStimShuttle];
         
         % Make sure valves are closed
-        isoValveOut(end) = 0;
+        pinchValveOut(end) = 0;  
         shuttleValveOut(end) = 0;
     end
     
@@ -65,13 +65,12 @@ function data = acquire_PID_trial(expNumber,trialDuration, valveID)
     
     if stimOn
         % Setup output channels
-        s.addDigitalChannel('Dev2', 'port0/line0', 'OutputOnly');       % Shuttle valve        
-        s.addDigitalChannel('Dev2', 'port0/line8:11', 'OutputOnly');    % 2-way iso valves
+        s.addAnalogOutputChannel('Dev2', 0:3, 'Voltage'); % 0:1 = pinch, 2:3 = shuttle
                
         % Load output data for each channel
-        outputData = zeros(sum(trialDuration*sampRate), 9);
-        outputData(:,1) = shuttleValveOut;
-        outputData(:, valveID + 1) = isoValveOut;
+        outputData = zeros(sum(trialDuration*sampRate), 4);
+        outputData(:, valveID) = pinchValveOut;
+        outputData(:, valveID +2) = shuttleValveOut;
         s.queueOutputData(outputData);    
     end
     
@@ -115,10 +114,11 @@ function data = acquire_PID_trial(expNumber,trialDuration, valveID)
     set(gca,'LooseInset',get(gca,'TightInset'))
     plot(time(.05*sampRate:end), PID_Out(.05*sampRate:end)); %scaledOut) ;
     if stimOn
-        plot([trialDuration(1), trialDuration(1)],ylim, 'Color', 'k') % Clean valves open
-        plot([sum(trialDuration(1:2)),sum(trialDuration(1:2))],ylim, 'Color', 'k')  % Shuttle valve closed
+        plot([(trialDuration(1)),(trialDuration(1))],ylim, 'Color', 'g')    % Pinch valve open
+        plot([(trialDuration(1)+trialDuration(2)),(trialDuration(1)+trialDuration(2))],ylim, 'Color', 'r') % Clean valves open
+        plot([sum(trialDuration(1:3)),sum(trialDuration(1:3))],ylim, 'Color', 'r')  % Shuttle valve closed
     end
-%     ylim([-3.3, -2.3]);
+    %ylim([-3.3, -2.3]);
     title(['Trial Number ' num2str(n) ]);
     ylabel('V');
     set(gca,'LooseInset',get(gca,'TightInset'))

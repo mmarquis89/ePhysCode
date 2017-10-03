@@ -8,7 +8,7 @@ trialDuration = [7 2 5];
 valveID = 3;
 
 for iTrial = 1:4
-    Acquire_PID_Trial(expNum, trialDuration, valveID);
+    acquire_PID_trial(expNum, trialDuration, valveID);
 end
 
 
