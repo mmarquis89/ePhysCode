@@ -1,6 +1,6 @@
 
 %% LOAD EXPERIMENT
-parentDir = 'D:\Dropbox (HMS)\Data';
+parentDir = 'B:\Dropbox (HMS)\Data';
 disp('Loading experiment...');
 expData = load_experiment('2017-May-30', 2, parentDir);
 disp('Experiment loaded');
@@ -308,14 +308,14 @@ end
 
 tic; t = [];
 filename = 'May_30_exp_2_LED_Stim_Example';
-savefig(h, ['D:\Dropbox (HMS)\Figs\', filename])
+savefig(h, ['B:\Dropbox (HMS)\Figs\', filename])
 t(1) = toc; tL{1} = 'Local save';
 if exist('f', 'var')
     set(h,'PaperUnits','inches','PaperPosition',[0 0 f.figDims(3)/100 f.figDims(4)/100])
 else
     set(h,'PaperUnits','inches')
 end
-export_fig(['D:\Dropbox (HMS)\Figs\PNG files\', filename], '-png');
+export_fig(['B:\Dropbox (HMS)\Figs\PNG files\', filename], '-png');
 t(2) = toc; tL{2} = 'Local PNG save';
 dispStr = '';
 for iToc = 1:length(t)

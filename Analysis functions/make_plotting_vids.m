@@ -1,5 +1,5 @@
 function msg = make_plotting_vids(expData, parentDir, flowDir, savePath)
-%============================================================================================================================
+%=============================================================================================================================
 % CREATE COMBINED PLOTTING VIDEOS
 % Creates an .avi movie for each trial of an experiment that combines the behavior video, the membrane voltage, and the optic
 % flow data. Returns a message string indicating whether the operation was a success (and if not, which trial it failed on). 
@@ -15,7 +15,7 @@ function msg = make_plotting_vids(expData, parentDir, flowDir, savePath)
 %       flowDir = the path to the .mat file containing the optic flow data for the experiment.
 % 
 %       savePath = the path to the directory where video will be saved.
-%============================================================================================================================
+%==============================================================================================================================
 
 frameRate = expData.expInfo(1).acqSettings.frameRate;
 strDate = expData.expInfo(1).date;

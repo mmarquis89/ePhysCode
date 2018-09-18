@@ -3,11 +3,19 @@ function flowData = optic_flow_calc(expData, parentDir, savePath)
 % CALCULATE MEAN OPTICAL FLOW
 % Calculates the mean optic flow across each frame of each video from the fly behavior camera. Returns an nx1 cell array with
 % a vector of these values for each trial in the experiment, and also saves it as a variable 'flowData' in a .mat file.
-%       expData = entire data object for the experiment in question
-%       parentDir = the file path to the parent folder containing all the .tif files for each trial. Within this directory,
-%                   the frames for each trial should be saved in a folder named with the experiment and trial numbers
-%                   separated by an understore (e.g. 'E1_T3')
-%       savepath = the file path to the location where the .mat file containing the optical flow data will be saved
+%
+% INPUTS:
+%   expData   = entire data object for the experiment in question
+%   
+%   parentDir = the file path to the parent folder containing all the .tif files for each trial. Within this directory,
+%               the frames for each trial should be saved in a folder named with the experiment and trial numbers
+%               separated by an understore (e.g. 'E1_T3')
+%   
+%   savepath  = the file path to the location where the .mat file containing the optical flow data will be saved
+%
+% OUTPUTS: 
+%   flowData  = An nTrials x 1 cell array containing the optic flow data for each video frame 
+%
 %============================================================================================================================
 
 nTrials = length(expData.expInfo);
