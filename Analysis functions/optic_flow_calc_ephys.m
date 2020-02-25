@@ -1,4 +1,4 @@
-function flowData = optic_flow_calc(expData, parentDir, savePath)
+function flowData = optic_flow_calc_ephys(expData, parentDir, savePath)
 %============================================================================================================================
 % CALCULATE MEAN OPTICAL FLOW
 % Calculates the mean optic flow across each frame of each video from the fly behavior camera. Returns an nx1 cell array with

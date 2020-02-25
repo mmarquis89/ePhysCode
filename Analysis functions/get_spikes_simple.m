@@ -8,14 +8,17 @@ function spikes = get_spikes_simple(bl, threshold, invert)
 %============================================================================================================================
 
 % Center current at 0 and invert if necessary
-normCurrent = bl.current - mean(median(bl.current));
+normCurrent = [];
+for iTrial = 1:bl.nTrials
+   normCurrent(:, iTrial) = bl.current(:, iTrial) - median(bl.current(:, iTrial), 'omitnan');
+end
 if invert
     normCurrent = -normCurrent;
 end
 
 % Find standard dev of all current data
 bl.threshold = threshold;
-currSTD = std(normCurrent(:));
+currSTD = std(normCurrent(:), 'omitnan');
 threshold = threshold.*currSTD
 
 warning('off', 'signal:findpeaks:largeMinPeakHeight');  % Turns off complaint if no peaks are found

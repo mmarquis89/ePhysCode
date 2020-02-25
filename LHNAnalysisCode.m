@@ -21,7 +21,8 @@ odorBlocks = [];
 for iOdor = 1:numel(odors)
     for iBlock = 1:numel(blockLists)
         currBl = blockLists{iBlock};
-        odorBlocks{iOdor, iBlock} = currBl(strcmp({expData.expInfo(blockLists{iBlock}).odor}, odors(iOdor)));
+        odorBlocks{iOdor, iBlock} = ...
+                currBl(strcmp({expData.expInfo(blockLists{iBlock}).odor}, odors(iOdor)));
     end
 end
 %% PULL OUT TRIAL BLOCK
