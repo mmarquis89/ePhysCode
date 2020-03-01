@@ -453,20 +453,161 @@ end
 catch foldME; rethrow(foldME); end
 
 
+
+%% Plot voltage traces aligned to LED stim onset or offset
+
+stimAlign = 'Offset';
+smWin = 500;
+plotWin = [3 3];
+
+sortedDataTable = sortrows(lightStimTable, {'cellType', 'expDate', 'expNum'});
+tbLight = dataTable(sortedDataTable);
+tbLight = tbLight.add_filter('stimAlignment', stimAlign);
+tbLight = tbLight.add_filter('moveFrames', @(x) ~logical(cellfun(@sum, x)));
+currDataOut = tbLight.apply_filters();
+uniqueExps = unique(currDataOut(:, [1 2 5]), 'stable', 'rows');
+
+iExp = 11;
+
+disp(uniqueExps(iExp, :))
+
+% Get data for just the current experiment
+tbLight = tbLight.add_filter('expDate', uniqueExps.expDate{iExp});
+tbLight = tbLight.add_filter('expNum', uniqueExps.expNum(iExp));
+currExpData = tbLight.apply_filters();
+
+moveFrameArr = cell2mat(currExpData.moveFrames');
+ambiguousFrameArr = cell2mat(currExpData.ambiguousMoveFrames');
+voltage = smoothdata(cell2mat(currExpData.voltage'), 1, 'gaussian', smWin, 'omitnan');
+voltage = voltage(1:5:end, :);
+plotTimes = (1:size(voltage, 1)) / (tbLight.sourceData.Properties.UserData.sampRate / 5);
+
+% Get spike times for current stims
+spikeTimes = [];
+nStims = size(currExpData, 1);
+trialLenSamples = size(currExpData.voltage{1}, 1);
+sampRate = tbLight.sourceData.Properties.UserData.sampRate;
+FRAME_RATE = tbLight.sourceData.Properties.UserData.FRAME_RATE;
+for iStim = 1:nStims
+    spikeTimes = [spikeTimes; currExpData.spikeSamples{iStim} + ...
+            (trialLenSamples * (iStim - 1))];
+end
+
+% Calculate analysis and plotting windows in sec/frames
+analysisWin = tbLight.sourceData.Properties.UserData.analysisWinSec;
+plotWinFrames = round((analysisWin(1) - (plotWin .* [1, -1])) * FRAME_RATE);
+if plotWinFrames(1) < 1
+    plotWinFrames(1) = 1;
+end
+
+% Movement
+figure(1);clf; imagesc(ambiguousFrameArr(plotWinFrames(1):plotWinFrames(2), :)');
+
+% Ambiguous move frames
+figure(2);clf; imagesc(moveFrameArr(plotWinFrames(1):plotWinFrames(2), :)');
+
+% Mean voltage
+figure(3);clf; plot(repmat(plotTimes', 1, size(voltage, 2)), voltage);
+hold on; 
+plot(plotTimes, mean(voltage, 2, 'omitnan'), 'color', 'k', 'linewidth', 2);
+yL = ylim();
+plot([analysisWin(1), analysisWin(1)], yL, 'color', 'r', 'linewidth', 2);
+ylim(yL);
+xlim(analysisWin(1) - (plotWin .* [1, -1]));
+
+% Raster
+figure(4);clf;
+ax = axes();
+rasterplot(spikeTimes, nStims, trialLenSamples, 'plotAxes', ax, 'sampRate', sampRate);
+hold on;
+yL = ylim();
+if strcmp(stimAlign, 'Onset')
+    alignColor = [0 1 0];
+else
+    alignColor = [1 0 0];
+end
+for iStim = 1:nStims
     
+    startY = (nStims + 0.25 * (nStims - 1)) - iStim - (0.25 * (iStim - 1)); 
+    endY = startY + 1;
+    
+    % Plot stim onsets on top of rasters
+    currStimOnsets = currExpData.otherStimOnsets{iStim};
+    currStimOnsetTimes = currStimOnsets / FRAME_RATE;
+    if strcmp(stimAlign, 'Onset')
+        currStimOnsetTimes(end + 1) = analysisWin(1);
+    end
+    for iOnset = 1:numel(currStimOnsetTimes)
+        currTime = currStimOnsetTimes(iOnset);
+        plot([currTime, currTime], [startY, endY], 'color', 'g', 'linewidth', 2);
+    end
+   
+    % Plot stim offsets on top of rasters
+    currStimOffsets = currExpData.otherStimOffsets{iStim};
+    currStimOffsetTimes = currStimOffsets / FRAME_RATE;
+    if strcmp(stimAlign, 'Offset')
+        currStimOffsetTimes(end + 1) = analysisWin(1);
+    end
+    for iOffset = 1:numel(currStimOffsetTimes)
+        currTime = currStimOffsetTimes(iOffset);
+        plot([currTime, currTime], [startY, endY], 'color', 'r', 'linewidth', 2);
+    end
+    
+    % Identify movement epochs during current stim's analysis window
+    currMoveFrames = moveFrameArr(:, iStim) .* ...
+        ~ambiguousFrameArr(:, iStim);
+    currMoveFramesStr = regexprep(num2str(currMoveFrames'), ' ', '');
+    moveEpochStarts = regexp(currMoveFramesStr, '01');
+    moveEpochEnds = regexp(currMoveFramesStr, '10');
+    if currMoveFrames(1) == 1
+        moveEpochStarts = [1, moveEpochStarts];
+    end
+    if numel(moveEpochStarts) > numel(moveEpochEnds)
+        moveEpochEnds(end + 1) = numel(currMoveFrames);
+    end
+    
+    % Shade movement epochs
+    moveEpochStartTimes = moveEpochStarts ./ FRAME_RATE;
+    moveEpochEndTimes = moveEpochEnds ./ FRAME_RATE;
+    for iEpoch = 1:numel(moveEpochStartTimes)
+        
+        jbfill([moveEpochStartTimes(iEpoch), moveEpochEndTimes(iEpoch)], ...
+                [startY, startY] - 0.051, ...
+                [endY endY] + 0.05, [0 0 1], [1 1 1], 1, 0.2);
+    end
+    
+    % Identify ambiguous movement frames during current stim's analysis window
+    currFrames = ambiguousFrameArr(:, iStim);
+    currFramesStr = regexprep(num2str(currFrames'), ' ', '');
+    epochStarts = regexp(currFramesStr, '0[12]');
+    epochEnds = regexp(currFramesStr, '[12]0');
+    if currFrames(1) == 1 || currFrames(1) ==2
+        epochStarts = [1, epochStarts];
+    end
+    if numel(epochStarts) > numel(epochEnds)
+        epochEnds(end + 1) = numel(currFrames);
+    end
+    
+    % Shade ambiguous movement epochs
+    ambEpochStartTimes = epochStarts ./ FRAME_RATE;
+    ambEpochEndTimes = epochEnds ./ FRAME_RATE;
+    for iEpoch = 1:numel(ambEpochStartTimes)
+        
+        jbfill([ambEpochStartTimes(iEpoch), ambEpochEndTimes(iEpoch)], ...
+            [startY, startY] - 0.051, ...
+            [endY endY] + 0.05, [0 0 0], [1 1 1], 1, 0.08);
+    end
+end
+ylim(yL)
+ax.XTickMode = 'manual';
+ax.XTickLabel = cellfun(@str2double, ax.XTickLabel)' - analysisWinSec(1);
+ax.TickLength = [0.005 0];
+xlim(analysisWin(1) - (plotWin .* [1, -1]));
+xlabel('Time (sec)')
 
 
-
-
-
-
-
-
-
-
-
-
-
+temp = (analysisWin(1) - (plotWin .* [1, -1])) * (sampRate/5);
+figure(5);clf; imagesc(voltage(temp(1):temp(2), :)')
 
 
 

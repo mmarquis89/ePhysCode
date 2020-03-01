@@ -501,7 +501,7 @@ disp(['Created table with ', num2str(sum(strcmp(lightStimTable.stimAlignment, 'O
 
 catch foldME; rethrow(foldME); end
 
-%% Determine which movement frames in lightStimTable are a,biguous due to the light stim itself
+%% Determine which movement frames in lightStimTable are ambiguous due to the light stim itself
 
 try
     

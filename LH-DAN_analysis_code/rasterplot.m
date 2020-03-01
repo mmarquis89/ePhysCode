@@ -16,7 +16,10 @@
 %
 % MODIFIED 24-Feb-2020 by MM
 % Added support for name-value pair arguments and outputting the plot+axes handles, and changed some 
-% variable names for clarity
+% variable names for clarity.
+%
+% Also changed it so it plots the earliest trials at the top of the plot instead of the bottom.
+%
 %
 %       'plotAxes' (default: create new figure and axes)
 %
@@ -58,7 +61,8 @@ reltimes(~reltimes)=trialLen;
 numspikes=length(spikeTimes);
 xx=ones(3*numspikes,1)*nan;
 yy=ones(3*numspikes,1)*nan;
-yy(1:3:3*numspikes)=(trials-1)*trialSpacing;
+% yy(1:3:3*numspikes)=(trials-1)*trialSpacing;
+yy(1:3:3*numspikes)=(nTrials - trials)*trialSpacing;
 yy(2:3:3*numspikes)=yy(1:3:3*numspikes)+1;
 
 % scale the time axis to seconds
@@ -71,8 +75,9 @@ xlim = [1, trialLen] / sampRate;
 axes(axesHandle);
 plotHandle = plot(xx, yy, lineColor, 'linewidth', lineWidth);
 axis ([xlim, 0, (nTrials)*1.5]);  
-  
-ax.TickDir = 'out';
+ylim([0, (nTrials * trialSpacing) - (trialSpacing - 1)]);
+
+axesHandle.TickDir = 'out';
 axesHandle.YTick = [];
 ylabel('Trials'); 
 xlabel('Time(ms)');
