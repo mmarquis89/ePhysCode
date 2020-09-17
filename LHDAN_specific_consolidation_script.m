@@ -17,7 +17,6 @@ LHDANexps = ismember(cellTypeList, danList);
 load(fullfile(parentDir, 'allExpMetadata.mat'), 'allExpData');
 load(fullfile(parentDir, 'allFlowData.mat'), 'allFlowData');
 expData = allExpData(LHDANexps, :);
-flowData = allFlowData(:, :, LHDANexps);
 LHDANtable = DANtable(LHDANexps, :);
 
 % Load pre-separated LED stim timing data
@@ -47,16 +46,6 @@ maxSamples = max(cellfun(@(x) size(x, 1), expData.scaledOut(:)));
 
 sampTimes = (1:1:maxSamples) ./ sampRate;
 frameTimes = (1:1:maxFrames) ./ FRAME_RATE;
-
-sampleAlignedFrames = [];
-for iFrame = 1:maxFrames
-   [~, sampleAlignedFrames(iFrame)] = min(abs(sampTimes - frameTimes(iFrame))); 
-end
-frameAlignedSamples = [];
-for iSamp = 1:maxSamples
-   [~, frameAlignedSamples(iSamp)] = min(abs(frameTimes - sampTimes(iSamp))); 
-end
-
 
 %% Get overview of odors presented to LH-DANs
 

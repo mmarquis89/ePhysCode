@@ -27,10 +27,13 @@ function h=subaxis(varargin)
 
 f=gcf;
 
-
-
 UserDataArgsOK=0;
-Args=get(f,'UserData');
+% Args=get(f,'UserData');           % Modified by MM 28-Aug-2020
+if isfield(f.UserData, 'subaxis')   % Modified by MM 28-Aug-2020
+    Args = f.UserData.subaxis;      % Modified by MM 28-Aug-2020
+else                                % Modified by MM 28-Aug-2020
+    Args = [];                      % Modified by MM 28-Aug-2020
+end                                 % Modified by MM 28-Aug-2020
 if isstruct(Args) 
     UserDataArgsOK=isfield(Args,'SpacingHorizontal')&isfield(Args,'Holdaxis')&isfield(Args,'rows')&isfield(Args,'cols');
 end
@@ -53,7 +56,8 @@ if (length(Args.NumericArguments)>2)
 end
 
 if OKToStoreArgs
-    set(f,'UserData',Args);
+%     set(f,'UserData',Args);   % Modified by MM 28-Aug-2020
+    f.UserData.subaxis = Args;  % Modified by MM 28-Aug-2020
 end
 
 

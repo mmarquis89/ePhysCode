@@ -1,11 +1,29 @@
 classdef dataTable
-
+% ==================================================================================================   
+%    
+% Properties:
+%       sourceData
+%       filterDescriptions
+%       filters
+%       fieldNames (dependent)
+%
+% Methods:
+%       .clear_all_filters()
+%       .clear_filter(fieldName)
+%       .add_filter(fieldName, filter)
+%       .apply_filters() 
+%       .list_filters()
+%       .show_filters() 
+% 
+% ==================================================================================================
     properties
         sourceData          % source table
         filterDescriptions  % description of current filter status 
         filters             % logical array of filter vectors, same dimensions as sourceData 
     end
-    
+    properties (Dependent)
+        fieldNames          % field names of the source data table
+    end 
     methods
         
         % Contructor
@@ -91,11 +109,11 @@ classdef dataTable
             figure(1);clf; imagesc(obj.filters);
         end
         
-        % Return source table field names
-        function field_names(obj)
-           Field_Names = fieldnames(obj.sourceData);
-           Column = (1:numel(Field_Names))';
-           disp(table(Column, Field_Names)); 
+        % Return source table field names, formatted in a view-friendly table
+        function fieldNames = get.fieldNames(obj)
+           rawNames = fieldnames(obj.sourceData);
+           col = (1:numel(rawNames))';
+           fieldNames = (table(col, rawNames)); 
         end
         
     end

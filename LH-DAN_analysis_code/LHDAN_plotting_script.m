@@ -17,7 +17,7 @@ figSize = [1025 780];
 try 
     
 sortedDataTable = sortrows(odorStimTable, {'cellType', 'expDate', 'expNum'});
-tbOdors = dataTable(sortedDataTable);
+tbOdors = DataTable(sortedDataTable);
 tbOdors.add_filter('excludeMove', 1);
 currDataOut = tbOdors.apply_filters();
 uniqueExps = unique(currDataOut(:, [1 2 8]), 'stable', 'rows');
@@ -153,7 +153,7 @@ figSize = [1025 780];
 try
     
 sortedDataTable = sortrows(odorStimTable, {'cellType', 'expDate', 'expNum'});
-tbOdors = dataTable(sortedDataTable);
+tbOdors = DataTable(sortedDataTable);
 tbOdors.add_filter('excludeMove', 1);
 currDataOut = tbOdors.apply_filters();
 uniqueExps = unique(currDataOut(:, [1 2 8]), 'stable', 'rows');
@@ -247,7 +247,7 @@ catch foldME; rethrow(foldME); end
 
 %% Same idea, but now plotting both the voltage traces and the rasters for each experiment 
 
-saveFigs = 1;
+saveFigs = 0;
 baseSaveFileName = 'LH-DAN_odor_response_meanTraces+rasters';
 
 smWin = 1000;
@@ -264,7 +264,7 @@ figSize = [1255 850];
 try
     
 sortedDataTable = sortrows(odorStimTable, {'cellType', 'expDate', 'expNum'});
-tbOdors = dataTable(sortedDataTable);
+tbOdors = DataTable(sortedDataTable);
 tbOdors.add_filter('excludeMove', 1);
 currDataOut = tbOdors.apply_filters();
 uniqueExps = unique(currDataOut(:, [1 2 8]), 'stable', 'rows');
@@ -456,18 +456,18 @@ catch foldME; rethrow(foldME); end
 
 %% Plot voltage traces aligned to LED stim onset or offset
 
-stimAlign = 'Offset';
+stimAlign = 'Onset';
 smWin = 500;
 plotWin = [3 3];
 
 sortedDataTable = sortrows(lightStimTable, {'cellType', 'expDate', 'expNum'});
-tbLight = dataTable(sortedDataTable);
+tbLight = DataTable(sortedDataTable);
 tbLight = tbLight.add_filter('stimAlignment', stimAlign);
 tbLight = tbLight.add_filter('moveFrames', @(x) ~logical(cellfun(@sum, x)));
 currDataOut = tbLight.apply_filters();
 uniqueExps = unique(currDataOut(:, [1 2 5]), 'stable', 'rows');
 
-iExp = 11;
+iExp = 1;
 
 disp(uniqueExps(iExp, :))
 
